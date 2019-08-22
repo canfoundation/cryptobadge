@@ -1,7 +1,7 @@
 Crypto-Badge
+----------
 
 Version 1.0.0
-----------
 
 This contract provides multiple functionalities:
 - Users can register to become a badge issuer,
@@ -97,7 +97,7 @@ https://jungle2.cryptolions.io:443
 ##### Set smart contract to cryptobadge1 account
 ````bash
 
-eosio-cpp -I include -o cbadge.wasm crypto.badge.cpp --abigen
+eosio-cpp -abigen -I include -contract cryptobage -o cryptobage.wasm src/cryptobadge.cpp
 
 $ cleos -u https://jungle2.cryptolions.io:443 set contract cryptobadge1 ./cbadge/ -p cryptobadge1
 ````
