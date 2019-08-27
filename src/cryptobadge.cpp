@@ -2,7 +2,7 @@
 #include "cryptobadge.hpp"
 
 
-ACTION cryptobadge::regissuer( name issuer, capi_checksum256& data) {
+ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 	require_auth( issuer );
 	require_recipient( issuer );
@@ -20,7 +20,7 @@ ACTION cryptobadge::regissuer( name issuer, capi_checksum256& data) {
 }
 
 
-ACTION cryptobadge::updateissuer( name issuer, capi_checksum256& data) {
+ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	require_auth( issuer );
 	require_recipient( issuer );
 
@@ -34,7 +34,7 @@ ACTION cryptobadge::updateissuer( name issuer, capi_checksum256& data) {
 	});
 }
 
-ACTION cryptobadge::createbadge( name issuer, name owner, capi_checksum256& idata, capi_checksum256& mdata) {
+ACTION cryptobadge::createbadge( uint64_t badgeid, name issuer, name owner, string& badgedata) {
 	require_auth( issuer );
 	
 	issuers _issuer(_self, _self.value);
@@ -48,17 +48,15 @@ ACTION cryptobadge::createbadge( name issuer, name owner, capi_checksum256& idat
 	
 	cbadges badges_( _self, owner.value );
 
-	uint64_t newID = getid(BADGE);
 	badges_.emplace( issuer, [&]( auto& s ) { 
-		s.badgeid = newID; 
+		s.badgeid = badgeid; 
 		s.owner = owner;   
 		s.issuer = issuer;
-		s.idata = idata;
-		s.mdata = mdata;	
+		s.badgedata = badgedata;
 	});
 }
 
-ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, capi_checksum256& mdata ) {
+ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, string& badgedata) {
 
 	require_auth( issuer );
 	check( is_account( owner ), "owner account does not exist");
@@ -73,11 +71,11 @@ ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, capi
 	check (itr->issuer == issuer, "badge does not belong to issuer");
 
 	_badges.modify( itr, issuer, [&]( auto& s ) {
-		s.mdata = mdata;
+		s.badgedata = badgedata;
 	});
 }
 
-ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, capi_checksum256& idata, bool requireclaim) {
+ACTION cryptobadge::createcert( uint64_t certid, name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim) {
 
 	require_auth( issuer );
 	check( is_account( owner ), "owner account does not exist");
@@ -90,9 +88,7 @@ ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, capi_
 	check (itr != _badges.end(), "badge does not exist");
 	
 	check (itr->owner == issuer, "badge does not belong to issuer");
-	
-	uint64_t newID = getid(CERT);
-	
+		
 	name certOwner = owner;
 	
 	check (!(issuer.value == owner.value && requireclaim == 1), "requireclaim only issuer == owner.");
@@ -102,16 +98,16 @@ ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, capi_
 		//add info to offers table
 		offers offert(_self, _self.value);
 		offert.emplace( issuer, [&]( auto& s ) {     
-			s.certid = newID;
+			s.certid = certid;
 			s.offeredto = owner;
 			s.owner = issuer;
-			s.cdate = now();
+			s.cdate = current_time_point().sec_since_epoch();
 		});
 	}
 	
 	ccerts certs(_self, certOwner.value);
 	certs.emplace( issuer, [&]( auto& s ) {     
-		s.id = newID;
+		s.id = certid;
 		s.owner = certOwner;
 		s.issuer = issuer;
 		s.badgeid = badgeid;
@@ -119,12 +115,12 @@ ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, capi_
 	});
 	
 	//Events
-	sendEvent(issuer, issuer, "cbcreate"_n, std::make_tuple(owner, newID));
-	SEND_INLINE_ACTION( *this, createlog, { {_self, "active"_n} },  { issuer, owner, idata, newID, requireclaim} );
+	sendEvent(issuer, issuer, "cbcreate"_n, std::make_tuple(owner, certid));
+	SEND_INLINE_ACTION( *this, createlog, { {_self, "active"_n} },  { issuer, owner, idata, certid, requireclaim} );
 }
 
 
-ACTION cryptobadge::createlog( name issuer, name owner, capi_checksum256& idata, uint64_t certid, bool requireclaim) {
+ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint64_t certid, bool requireclaim) {
 	require_auth(get_self());
 }
 
@@ -237,10 +233,9 @@ ACTION cryptobadge::attach( name owner, uint64_t certid, string data) {
 
 	check(owner.value == itr->owner.value, "the certs does not belong to owner"); 
 
-	capi_checksum256 hashed;
-	sha256((char *)&data, data.length(), &hashed);
+	checksum256 hashed; sha256((char *)&data, data.length());
 	//Todo: check attached data match with certification data
-	//check(compareHash(itr->idata, hashed), "the hashed data not the same with current one"); 
+	check(compareHash(itr->idata, hashed), "the hashed data not the same with current one"); 
 
 	ccertinfos _ccertinfos(_self, owner.value);
 	auto ci_itr = _ccertinfos.find( certid );
@@ -325,7 +320,7 @@ void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std
 	sevent.send(getid(DEFER), rampayer);
 }
 
-bool cryptobadge::compareHash(const capi_checksum256& current_hash, const capi_checksum256&  input_hash) {
+bool cryptobadge::compareHash(const checksum256& current_hash, const checksum256&  input_hash) {
 
         const uint64_t *current64 = reinterpret_cast<const uint64_t *>(&current_hash);
 		const uint64_t *input64 = reinterpret_cast<const uint64_t *>(&input_hash);

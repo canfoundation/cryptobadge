@@ -25,19 +25,20 @@ Actions:
 
 ## badge::createbadge issuer owner idata mdata
    - Create a new badge
+   - **badgeid** unique badge id
    - **issuer** the account registering as a issuer
    - **owner** the badge owner account
-   - **idata** immutable badges data
-   - **mdata** mutable badges data
+   - **badgedata** stringified json with mutable badges data
 
 ## badge::updatebadge issuer owner badgeid mdata 
    - **issuer** account has created badge
    - **owner** the badge owner account
    - **badgeid** id of badge
-   - **mdata** mutable badges data
+   - **badgedata** mutable badges data
 
 ## badge::createcert issuer owner badgeid idata requireclaim
    - Create a new certification
+   - **certid** unique cert id
    - **issuer** account whose onwer of badgeid
    - **owner** account whose certification owner
    - **badgeid** the badge on certification
@@ -83,35 +84,61 @@ Example session using cleos with jungle testnet
 #### Prerequisites
 
 
-* Please create new account to deploy smart contract:  cryptobadge1
+* Please create new account to deploy smart contract:  badge.can
  
 
-* Endpoint network:
+* CAN Testnet endpoint network:
 
-https://jungle2.cryptolions.io:443 
-
-
-* Contract name: cryptobadge1
+http://3.10.0.98:8888 
 
 
-##### Set smart contract to cryptobadge1 account
+* Contract name: badge.can
+
+
+##### Set smart contract to badge.can account
 ````bash
 
-eosio-cpp -abigen -I include -contract cryptobage -o cryptobage.wasm src/cryptobadge.cpp
+eosio-cpp -abigen -I include -contract cryptobadge -o cryptobadge.wasm src/cryptobadge.cpp
 
-$ cleos -u https://jungle2.cryptolions.io:443 set contract cryptobadge1 ./cbadge/ -p cryptobadge1
+cleos -u http://3.10.0.98:8888 set contract badge.can . cryptobadge.wasm cryptobadge.abi -p badge.can
+
 ````
 
 ##### Check smart contract ram
 ````bash
-cleos -u https://jungle2.cryptolions.io:443 get account cryptobadge1
+cleos -u http://3.10.0.98:8888 get account badge.can
 ...
 memory: 
-    quota:     1.866 MiB    used:     577.1 KiB
+    quota:     8.001 MiB    used:     632.2 KiB 
 ````
 
+##### set server permission in case using server permission
+````bash
 
+$ cleos -u http://3.10.0.98:8888  set account permission badge.can server '{"threshold": 1,"keys": [{"key": "EOS5W9TbfQwz5TM5ap3mpHJHpJH842HBVGH3F7pqtoQgj4B4bYF8k","weight": 1}]}' "active" -p badge.can
 
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can regissuer server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can updateissuer server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can createbadge server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can updatebadge server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can createcert server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can createlog server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can removecert server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can canceloffer server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can claimcert server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can attach server
+
+$ cleos -u http://3.10.0.98:8888  set action permission badge.can badge.can detach server
+````
 
 ##### pre-process information data
 ````bash
@@ -192,18 +219,20 @@ Json hash256: https://emn178.github.io/online-tools/sha256.html
 ````
 
 
-##### register issuer
+##### register issuer 
 
 ````bash
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 regissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
+for example issuer.can as first issuer
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 updateissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
+$ cleos -u http://3.10.0.98:8888 push action badge.can regissuer '[issuer.can, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p issuer.can
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 cryptobadge1 issuers
+$ cleos -u http://3.10.0.98:8888 push action badge.can updateissuer '[issuer.can, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p issuer.can
+
+$ cleos -u http://3.10.0.98:8888 get table badge.can badge.can issuers
 {
   "rows": [{
-      "issuer": "badgeissuer1",
+      "issuer": "issuer.can",
       "data": "74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18"
     }
   ],
@@ -217,18 +246,17 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 cryptobadge
 
 ````bash
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 createbadge '[badgeissuer2, badgeissuer1, 525843a99dfe43dc3e0da059e9d400490d6bfc322593bb95926a71ec5b1feadb, d15abff66e1d0c0705249a621dac4ab6897b54369c7cd6157ac8800973115907]' -p badgeissuer2
+$ cleos -u http://3.10.0.98:8888 push action badge.can createbadge '[99999, issuer.can, issuer.can, "{\"name\":\"Cryptobadge\",\"url\":\"cryptobadge.app\",\"description\":\"cryptobadge application\",\"framework\":\"Blockchain\",\"code\":\"123\"}"]' -p issuer.can
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 updateissuer '[badgeissuer1, d15abff66e1d0c0705249a621dac4ab6897b54369c7cd6157ac8800973115907]' -p badgeissuer1
+$ cleos -u http://3.10.0.98:8888 push action badge.can updateissuer '[issuer.can, d15abff66e1d0c0705249a621dac4ab6897b54369c7cd6157ac8800973115907]' -p issuer.can
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 badgeissuer1 cbadges
+$ cleos -u http://3.10.0.98:8888 get table badge.can issuer.can cbadges
 {
   "rows": [{
-      "badgeid": 1,
-      "issuer": "badgeissuer1",
-      "owner": "badgeissuer1",
-      "idata": "d15abff66e1d0c0705249a621dac4ab6897b54369c7cd6157ac8800973115907",
-      "mdata": "d15abff66e1d0c0705249a621dac4ab6897b54369c7cd6157ac8800973115907"
+      "badgeid": 99999,
+      "issuer": "issuer.can",
+      "owner": "issuer.can",
+      "badgedata": "{\"name\":\"Cryptobadge\",\"url\":\"cryptobadge.app\",\"description\":\"cryptobadge application\",\"framework\":\"Blockchain\",\"code\":\"123\"}"
     }
   ],
   "more": false
@@ -239,15 +267,15 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 badgeissuer
 
 ````bash
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 createcert '[badgeissuer1, iwantmybadge, 1,  8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691, false]' -p badgeissuer1
+$ cleos -u http://3.10.0.98:8888 push action badge.can createcert '[0, issuer.can, iwantmybadge, 1,  8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691, false]' -p issuer.can
 
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 iwantmybadge ccerts
+$ cleos -u http://3.10.0.98:8888 get table badge.can iwantmybadge ccerts
 {
   "rows": [{
       "id": 1000001,
       "owner": "iwantmybadge",
-      "issuer": "badgeissuer1",
+      "issuer": "issuer.can",
       "badgeid": 1,
       "idata": "8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691"
     }
@@ -262,13 +290,13 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 iwantmybadg
 
 ````bash
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 createcert '[badgeissuer1, iwantmybadge, 1,  8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691, true]' -p badgeissuer1
+$ cleos -u http://3.10.0.98:8888 push action badge.can createcert '[1, issuer.can, iwantmybadge, 1,  8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691, true]' -p issuer.can
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 cryptobadge1 offers
+$ cleos -u http://3.10.0.98:8888 get table badge.can badge.can offers
 {
   "rows": [{
       "certid": 1000002,
-      "owner": "badgeissuer1",
+      "owner": "issuer.can",
       "offeredto": "iwantmybadge",
       "cdate": 1560248740
     }
@@ -276,12 +304,12 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 cryptobadge
   "more": false
 }
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 badgeissuer1 ccerts
+$ cleos -u http://3.10.0.98:8888 get table badge.can issuer.can ccerts
 {
   "rows": [{
       "id": 1000002,
-      "owner": "badgeissuer1",
-      "issuer": "badgeissuer1",
+      "owner": "issuer.can",
+      "issuer": "issuer.can",
       "badgeid": 1,
       "idata": "8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691"
     }
@@ -289,26 +317,26 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 badgeissuer
   "more": false
 }
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 claimcert '[iwantmybadge, [1000002] ]' -p iwantmybadge
+$ cleos -u http://3.10.0.98:8888 push action badge.can claimcert '[iwantmybadge, [1000002] ]' -p iwantmybadge
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 cryptobadge1 offers
+$ cleos -u http://3.10.0.98:8888 get table badge.can badge.can offers
 {
   "rows": [],
   "more": false
 }
 
-$ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 iwantmybadge ccerts
+$ cleos -u http://3.10.0.98:8888 get table badge.can iwantmybadge ccerts
 {
   "rows": [{
       "id": 1000001,
       "owner": "iwantmybadge",
-      "issuer": "badgeissuer1",
+      "issuer": "issuer.can",
       "badgeid": 1,
       "idata": "8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691"
     },{
       "id": 1000002,
       "owner": "iwantmybadge",
-      "issuer": "badgeissuer1",
+      "issuer": "issuer.can",
       "badgeid": 0,
       "idata": "8032553af2ff539027eb9fb4eaaa731a5574811badf2dc01d5db4bee64976691"
     }
@@ -322,8 +350,8 @@ $ cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 iwantmybadg
 
 ````bash
 
-$ cleos -u https://jungle2.cryptolions.io:443 push action cryptobadge1 attach '[iwantmybadge, 1000001,  "{\"issuedOn\":\"01-01-2011\",\"evidences\":\"By 123\",\"narratives\":\"Can foundation\",\"expire\":\"01-01-2021\",\"description\":\"Blockchain Company\"}"]' -p iwantmybadge
+$ cleos -u http://3.10.0.98:8888 push action badge.can attach '[iwantmybadge, 1000001,  "{\"issuedOn\":\"01-01-2011\",\"evidences\":\"By 123\",\"narratives\":\"Can foundation\",\"expire\":\"01-01-2021\",\"description\":\"Blockchain Company\"}"]' -p iwantmybadge
 
-cleos -u https://jungle2.cryptolions.io:443 get table cryptobadge1 iwantmybadge ccertinfos
+cleos -u http://3.10.0.98:8888 get table badge.can iwantmybadge ccertinfos
 ````
 

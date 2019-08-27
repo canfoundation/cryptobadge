@@ -1,15 +1,16 @@
 
-#include <eosiolib/singleton.hpp>
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/time.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/crypto.h>
+#include <eosio/singleton.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/time.hpp>
+#include <eosio/symbol.hpp>
+#include <eosio/transaction.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/crypto.hpp>
+#include <eosio/system.hpp>
 #include <algorithm>
 #include <iterator>
 #include <vector>
-
 
 using namespace eosio;
 using std::string;
@@ -27,7 +28,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- issuer account who will create badges;
 		* data		- sha256 string. Recommendations to include: name, url, telephone, desc, image, email, address;
 		*/
-		ACTION regissuer( name issuer, capi_checksum256& data);
+		ACTION regissuer( name issuer, checksum256& data);
 
 
 		/*
@@ -36,7 +37,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- issuers account who will create badges;
 		* data		- sha256 string. Recommendations to include: name, url, telephone, desc, image, email, address;
 		*/
-		ACTION updateissuer( name issuer, capi_checksum256& data);
+		ACTION updateissuer( name issuer, checksum256& data);
 
 		/*
 		* Create a new badge.
@@ -44,10 +45,9 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- badge's issuer, who will able to updated badge's mdata;
 		* category	- badges category;
 		* owner		- badges owner;
-		* idata		- sha256 string with immutable badges data;
-		* mdata		- sha256 string with mutable badges data, can be changed only by issuer;
+		* badgedata	- stringified json with mutable badges data;
 		*/
-		ACTION createbadge( name issuer, name owner, capi_checksum256& idata, capi_checksum256& mdata);
+		ACTION createbadge( uint64_t badgeid, name issuer, name owner, string& badgedata);
 
 		/*
 		* Update badges mutable data (mdata) field. Action is available only for issuers.
@@ -55,9 +55,9 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- issuers account;
 		* owner		- current badges owner;
 		* badgeid	- badgeid to update;
-		* mdata		- stringified json with mutable badges data. All mdata will be replaced;
+		* badgedata		- stringified json with mutable badges data. All mdata will be replaced;
 		*/
-		ACTION updatebadge( name issuer, name owner, uint64_t badgeid, capi_checksum256& mdata );
+		ACTION updatebadge( name issuer, name owner, uint64_t badgeid, string& badgedata);
 
 		/*
 		* Create a new certification.
@@ -70,7 +70,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-		ACTION createcert( name issuer, name owner, uint64_t badgeid, capi_checksum256& idata, bool requireclaim);
+		ACTION createcert( uint64_t certid, name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim);
 
 		/*
 		* Claim the specified certification (assuming it was offered to claimer by the certification owner).
@@ -125,14 +125,14 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* Empty action. Used by create action to log certid so that third party explorers can
 		* easily get new certification ids and other information.
 		*/
-		ACTION createlog( name issuer, name owner, capi_checksum256& idata, uint64_t certid, bool requireclaim);
+		ACTION createlog( name issuer, name owner, checksum256& idata, uint64_t certid, bool requireclaim);
 
 
 	private:
 
 		uint64_t getid(uint64_t gindex);	
 
-	bool compareHash(const capi_checksum256& current_hash, const capi_checksum256&  input_hash);
+	bool compareHash(const checksum256& current_hash, const checksum256&  input_hash);
 
 		template<typename... Args>
 		void sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &tup);
@@ -145,7 +145,7 @@ class[[eosio::contract]] cryptobadge : public contract{
     TABLE cissuer
     {
 			name						issuer;
-			capi_checksum256			data;
+			checksum256			data;
 
 			auto primary_key() const {
 				return issuer.value;
@@ -163,8 +163,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 			uint64_t                badgeid;
 			name                    issuer;
 			name                    owner;
-			capi_checksum256        idata;
-			capi_checksum256        mdata;
+			string        			badgedata;
 
 			auto primary_key() const {
 				return badgeid;
@@ -188,7 +187,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 			name                    owner;
 			name                    issuer;
 			uint64_t                badgeid;
-			capi_checksum256        idata;
+			checksum256        idata;
 
 			auto primary_key() const {
 				return id;
