@@ -83,7 +83,7 @@ And finally, after your contract has been successfully built, run unit tests wit
 
 ```bash
 cd ..
-python3 tests/test1.py
+python3 tests/unittest.py
 ```
 
 An example using smart contract by cloes at `example` directory
