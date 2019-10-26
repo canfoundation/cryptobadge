@@ -1,5 +1,9 @@
+/**
+ *  @file
+ *  @copyright defined in eos/LICENSE.txt
+ */
 
-#include "cryptobadge.hpp"
+#include <cryptobadge.hpp>
 
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
@@ -34,7 +38,7 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	});
 }
 
-ACTION cryptobadge::createbadge( uint64_t badgeid, name issuer, name owner, string& badgedata) {
+ACTION cryptobadge::createbadge( name issuer, name owner, checksum256& idata, checksum256& mdata) {
 	require_auth( issuer );
 	
 	issuers _issuer(_self, _self.value);
@@ -48,15 +52,17 @@ ACTION cryptobadge::createbadge( uint64_t badgeid, name issuer, name owner, stri
 	
 	cbadges badges_( _self, owner.value );
 
+	uint64_t newID = getid(BADGE);
 	badges_.emplace( issuer, [&]( auto& s ) { 
-		s.badgeid = badgeid; 
+		s.badgeid = newID; 
 		s.owner = owner;   
 		s.issuer = issuer;
-		s.badgedata = badgedata;
+		s.idata = idata;
+		s.mdata = mdata;	
 	});
 }
 
-ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, string& badgedata) {
+ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, checksum256& mdata ) {
 
 	require_auth( issuer );
 	check( is_account( owner ), "owner account does not exist");
@@ -71,11 +77,11 @@ ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, stri
 	check (itr->issuer == issuer, "badge does not belong to issuer");
 
 	_badges.modify( itr, issuer, [&]( auto& s ) {
-		s.badgedata = badgedata;
+		s.mdata = mdata;
 	});
 }
 
-ACTION cryptobadge::createcert( uint64_t certid, name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim) {
+ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim) {
 
 	require_auth( issuer );
 	check( is_account( owner ), "owner account does not exist");
@@ -88,7 +94,9 @@ ACTION cryptobadge::createcert( uint64_t certid, name issuer, name owner, uint64
 	check (itr != _badges.end(), "badge does not exist");
 	
 	check (itr->owner == issuer, "badge does not belong to issuer");
-		
+	
+	uint64_t newID = getid(CERT);
+	
 	name certOwner = owner;
 	
 	check (!(issuer.value == owner.value && requireclaim == 1), "requireclaim only issuer == owner.");
@@ -98,16 +106,16 @@ ACTION cryptobadge::createcert( uint64_t certid, name issuer, name owner, uint64
 		//add info to offers table
 		offers offert(_self, _self.value);
 		offert.emplace( issuer, [&]( auto& s ) {     
-			s.certid = certid;
+			s.certid = newID;
 			s.offeredto = owner;
 			s.owner = issuer;
-			s.cdate = current_time_point().sec_since_epoch();
+			s.cdate = current_time_point();
 		});
 	}
 	
 	ccerts certs(_self, certOwner.value);
 	certs.emplace( issuer, [&]( auto& s ) {     
-		s.id = certid;
+		s.id = newID;
 		s.owner = certOwner;
 		s.issuer = issuer;
 		s.badgeid = badgeid;
@@ -115,8 +123,8 @@ ACTION cryptobadge::createcert( uint64_t certid, name issuer, name owner, uint64
 	});
 	
 	//Events
-	sendEvent(issuer, issuer, "cbcreate"_n, std::make_tuple(owner, certid));
-	SEND_INLINE_ACTION( *this, createlog, { {_self, "active"_n} },  { issuer, owner, idata, certid, requireclaim} );
+	sendEvent(issuer, issuer, "cbcreate"_n, std::make_tuple(owner, newID));
+	SEND_INLINE_ACTION( *this, createlog, { {_self, "active"_n} },  { issuer, owner, idata, newID, requireclaim} );
 }
 
 
@@ -233,9 +241,10 @@ ACTION cryptobadge::attach( name owner, uint64_t certid, string data) {
 
 	check(owner.value == itr->owner.value, "the certs does not belong to owner"); 
 
-	checksum256 hashed; sha256((char *)&data, data.length());
+	checksum256 hashed;
+	hashed = sha256((char *)&data, data.length());
 	//Todo: check attached data match with certification data
-	check(compareHash(itr->idata, hashed), "the hashed data not the same with current one"); 
+	//check(compareHash(itr->idata, hashed), "the hashed data not the same with current one"); 
 
 	ccertinfos _ccertinfos(_self, owner.value);
 	auto ci_itr = _ccertinfos.find( certid );

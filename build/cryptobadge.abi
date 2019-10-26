@@ -52,8 +52,12 @@
                     "type": "name"
                 },
                 {
-                    "name": "badgedata",
-                    "type": "string"
+                    "name": "idata",
+                    "type": "checksum256"
+                },
+                {
+                    "name": "mdata",
+                    "type": "checksum256"
                 }
             ]
         },
@@ -143,7 +147,7 @@
                 },
                 {
                     "name": "cdate",
-                    "type": "uint64"
+                    "type": "time_point"
                 }
             ]
         },
@@ -151,10 +155,6 @@
             "name": "createbadge",
             "base": "",
             "fields": [
-                {
-                    "name": "badgeid",
-                    "type": "uint64"
-                },
                 {
                     "name": "issuer",
                     "type": "name"
@@ -164,8 +164,12 @@
                     "type": "name"
                 },
                 {
-                    "name": "badgedata",
-                    "type": "string"
+                    "name": "idata",
+                    "type": "checksum256"
+                },
+                {
+                    "name": "mdata",
+                    "type": "checksum256"
                 }
             ]
         },
@@ -173,10 +177,6 @@
             "name": "createcert",
             "base": "",
             "fields": [
-                {
-                    "name": "certid",
-                    "type": "uint64"
-                },
                 {
                     "name": "issuer",
                     "type": "name"
@@ -306,8 +306,8 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "badgedata",
-                    "type": "string"
+                    "name": "mdata",
+                    "type": "checksum256"
                 }
             ]
         },

@@ -1,21 +1,20 @@
 
 #include <eosio/singleton.hpp>
+#include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/time.hpp>
 #include <eosio/symbol.hpp>
 #include <eosio/transaction.hpp>
-#include <eosio/eosio.hpp>
-#include <eosio/asset.hpp>
 #include <eosio/crypto.hpp>
-#include <eosio/system.hpp>
 #include <algorithm>
 #include <iterator>
 #include <vector>
 
+
 using namespace eosio;
 using std::string;
 
-class[[eosio::contract]] cryptobadge : public contract{
+	class [[eosio::contract("cryptobadge")]] cryptobadge : public contract {
 
 	public:
 		//using contract::contract;
@@ -45,9 +44,10 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- badge's issuer, who will able to updated badge's mdata;
 		* category	- badges category;
 		* owner		- badges owner;
-		* badgedata	- stringified json with mutable badges data;
+		* idata		- sha256 string with immutable badges data;
+		* mdata		- sha256 string with mutable badges data, can be changed only by issuer;
 		*/
-		ACTION createbadge( uint64_t badgeid, name issuer, name owner, string& badgedata);
+		ACTION createbadge( name issuer, name owner, checksum256& idata, checksum256& mdata);
 
 		/*
 		* Update badges mutable data (mdata) field. Action is available only for issuers.
@@ -55,9 +55,9 @@ class[[eosio::contract]] cryptobadge : public contract{
 		* issuer	- issuers account;
 		* owner		- current badges owner;
 		* badgeid	- badgeid to update;
-		* badgedata		- stringified json with mutable badges data. All mdata will be replaced;
+		* mdata		- stringified json with mutable badges data. All mdata will be replaced;
 		*/
-		ACTION updatebadge( name issuer, name owner, uint64_t badgeid, string& badgedata);
+		ACTION updatebadge( name issuer, name owner, uint64_t badgeid, checksum256& mdata );
 
 		/*
 		* Create a new certification.
@@ -70,7 +70,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-		ACTION createcert( uint64_t certid, name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim);
+		ACTION createcert( name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim);
 
 		/*
 		* Claim the specified certification (assuming it was offered to claimer by the certification owner).
@@ -132,7 +132,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 
 		uint64_t getid(uint64_t gindex);	
 
-	bool compareHash(const checksum256& current_hash, const checksum256&  input_hash);
+		bool compareHash(const checksum256& current_hash, const checksum256&  input_hash);
 
 		template<typename... Args>
 		void sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &tup);
@@ -163,7 +163,8 @@ class[[eosio::contract]] cryptobadge : public contract{
 			uint64_t                badgeid;
 			name                    issuer;
 			name                    owner;
-			string        			badgedata;
+			checksum256        idata;
+			checksum256        mdata;
 
 			auto primary_key() const {
 				return badgeid;
@@ -230,7 +231,7 @@ class[[eosio::contract]] cryptobadge : public contract{
 			uint64_t		certid;
 			name			owner;
 			name			offeredto;
-			uint64_t		cdate;
+			time_point		cdate;
 
 			auto primary_key() const {
 				return certid;
