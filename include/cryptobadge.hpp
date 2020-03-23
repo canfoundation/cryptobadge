@@ -41,10 +41,11 @@ public:
 	/*
 		* Create a new badge.
 		*
-		* issuer			- badge's issuer, who will able to updated badge's mdata;
-		* version			- version of badge data;
+		* issuer		- badge's issuer, who will able to updated badge's mdata;
+		* badge_id		- unique id;		
+		* name			- badge name;			
 		* image_url		- image url of badge;
-		* path				- path of badge;
+		* path			- path of badge;
 		* description	- description of badge;
 		* criteria		- criteria of badge;
 		*/
@@ -54,9 +55,7 @@ public:
 		* Update badges data. Action is available only for issuers.
 		*
 		* issuer			- issuers account;
-		* owner				- current badges owner;
 		* badge_id			- badge id to update;
-		* version			- version of badge;
 		* name				- name of badge;
 		* image_url		- image url of badge;
 		* path				- path of badge;
@@ -68,15 +67,19 @@ public:
 	/*
 		* Create a new certification.
 		*
-		* issuer	- badge owner;
-		* owner		- certification owner;
-		* idata		- sha256 string with encrypted certifications data;
-		* require_claim	- true or false. If disabled, upon creation, the certification will be transfered to owner (but
+		* issuer			- badge owner;
+		* owner				- certification owner;
+		* badge_id			- The badge id which was issued to user;
+		* badge_revision	- The badge revision;		
+		* cert_id			- The certification id;
+		* encrypted_data	- The encrypted certifications data;
+		* encrypted_data	- expired time;
+		* require_claim		- true or false. If disabled, upon creation, the certification will be transfered to owner (but
 		*		  but issuer'S memory will be used until the certification is transferred again).  If enabled,
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-	ACTION issuebadge(name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string & encrypted_data, uint64_t state, bool require_claim);
+	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim);
 
 	/*
 		* Update certification state to expired.
