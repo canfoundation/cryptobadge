@@ -1,10 +1,8 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
- */
 
-#include <cryptobadge.hpp>
+#include "../include/cryptobadge.hpp"
 
+const uint64_t BADGE_SCHEMA_V1 = 1000;
+const name GOVERNANCE_DESIGN = "governance"_n;
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
@@ -20,9 +18,7 @@ ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 		s.issuer = issuer;
 		s.data = data;	
 	});
-	
 }
-
 
 ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	require_auth( issuer );
@@ -38,102 +34,145 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	});
 }
 
-ACTION cryptobadge::createbadge( name issuer, name owner, checksum256& idata, checksum256& mdata) {
+ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria) {
 	require_auth( issuer );
+	require_auth( _self );
 	
+	// TODO check if issuer is community account
 	issuers _issuer(_self, _self.value);
-	auto itr = _issuer.find( issuer.value );
-	
-	check ( itr != _issuer.end(), "issuer does not exist" );
-	
-	check( is_account( owner ), "owner account does not exist");
+	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	auto issuer_itr = _issuer.find( issuer.value );
+	if(issuer_itr == _issuer.end()){
+		auto community_itr = _community.find( issuer.value );
+		check ( community_itr != _community.end(), "issuer does not exist" );
+	}
 
-	require_recipient( owner );
-	
-	cbadges badges_( _self, owner.value );
+	cbadges _badges( _self, issuer.value );
+	auto badge_itr = _badges.find(badge_id);
+	check ( badge_itr == _badges.end(), "badge_id already exist" );
 
-	uint64_t newID = getid(BADGE);
-	badges_.emplace( issuer, [&]( auto& s ) { 
-		s.badgeid = newID; 
-		s.owner = owner;   
+	_badges.emplace( issuer, [&]( auto& s ) {
+		s.badge_id = badge_id; 
 		s.issuer = issuer;
-		s.idata = idata;
-		s.mdata = mdata;	
 	});
 }
 
-ACTION cryptobadge::updatebadge( name issuer, name owner, uint64_t badgeid, checksum256& mdata ) {
+ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria ) {
 
 	require_auth( issuer );
-	check( is_account( owner ), "owner account does not exist");
+	require_auth( _self );
 
-	require_recipient( owner );
-	
-	cbadges _badges( _self, owner.value );
-	auto itr = _badges.find( badgeid );
+	cbadges _badges( _self, issuer.value );
+	auto itr = _badges.find( badge_id );
 
 	check (itr != _badges.end(), "badge does not exist");
-	
 	check (itr->issuer == issuer, "badge does not belong to issuer");
 
 	_badges.modify( itr, issuer, [&]( auto& s ) {
-		s.mdata = mdata;
+		s.version = itr->version + 1;
 	});
 }
 
-ACTION cryptobadge::createcert( name issuer, name owner, uint64_t badgeid, checksum256& idata, bool requireclaim) {
+ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim) {
 
 	require_auth( issuer );
+	require_auth( _self );
+
 	check( is_account( owner ), "owner account does not exist");
+
+	issuers _issuer(_self, _self.value);
+	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	auto issuer_itr = _issuer.find( issuer.value );
+	if(issuer_itr == _issuer.end()){
+		auto community_itr = _community.find( issuer.value );
+		check ( community_itr != _community.end(), "issuer does not exist" );
+	}
 
 	require_recipient( owner );
 	
 	cbadges _badges( _self, issuer.value );
-	auto itr = _badges.find( badgeid );
+	auto badge_itr = _badges.find( badge_id );
 
-	check (itr != _badges.end(), "badge does not exist");
+	check (badge_itr != _badges.end(), "badge does not exist");
 	
-	check (itr->owner == issuer, "badge does not belong to issuer");
-	
-	uint64_t newID = getid(CERT);
 	
 	name certOwner = owner;
 	
-	check (!(issuer.value == owner.value && requireclaim == 1), "requireclaim only issuer == owner.");
+	check (!(issuer.value == owner.value && require_claim == 1), "require_claim only issuer == owner.");
 	
-	if (requireclaim){
+	if (require_claim){
 		certOwner = issuer;
 		//add info to offers table
-		offers offert(_self, _self.value);
-		offert.emplace( issuer, [&]( auto& s ) {     
-			s.certid = newID;
-			s.offeredto = owner;
+		offers _offert(_self, _self.value);
+		auto offer_itr = _offert.find(cert_id);
+		check (offer_itr == _offert.end(), "offer already exist");
+
+		_offert.emplace( issuer, [&]( auto& s ) {     
+			s.cert_id = cert_id;
+			s.offered_to = owner;
 			s.owner = issuer;
-			s.cdate = current_time_point();
+			s.date = current_time_point();
 		});
 	}
 	
-	ccerts certs(_self, certOwner.value);
-	certs.emplace( issuer, [&]( auto& s ) {     
-		s.id = newID;
-		s.owner = certOwner;
-		s.issuer = issuer;
-		s.badgeid = badgeid;
-		s.idata = idata; // immutable data
+	ccerts _certs(_self, certOwner.value);
+	auto cert_itr = _certs.find(cert_id);
+	check (cert_itr == _certs.end(), "cert already exist");
+
+	_certs.emplace( issuer, [&]( auto& s ) {     
+		s.id = cert_id;
+		s.badge_id = badge_id;
+		s.badge_revision = badge_revision;
+		s.owner = owner;
+		s.state = CertificationState::CERTIFIED;
+		s.expire_at = expire_at;
+		s.encripted_data = encripted_data;
 	});
 	
-	//Events
-	sendEvent(issuer, issuer, "cbcreate"_n, std::make_tuple(owner, newID));
-	SEND_INLINE_ACTION( *this, createlog, { {_self, "active"_n} },  { issuer, owner, idata, newID, requireclaim} );
+}
+
+ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
+	require_auth(updater);
+
+	ccerts _certs(_self, owner.value);
+	auto cert_itr = _certs.find(cert_id);
+
+	check (cert_itr != _certs.end(), "cert does not exist");
+
+  check (cert_itr->expire_at, "Certificate can not be expired");
+	check (cert_itr->expire_at < current_time_point().sec_since_epoch(), "Certificate has not been expired");
+	check (cert_itr->state == CertificationState::CERTIFIED, "Certificate has been revoked or expired");
+
+	_certs.modify( cert_itr, updater, [&]( auto& s ) {
+		s.state = CertificationState::EXPIRED;
+	});
+}
+
+ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, string reason ) {
+	require_auth(issuer);
+
+	ccerts _certs(_self, owner.value);
+	auto cert_itr = _certs.find(cert_id);
+
+	check (cert_itr != _certs.end(), "cert does not exist");
+
+	cbadges _badges( _self, issuer.value );
+	auto itr = _badges.find( cert_itr->badge_id );
+	check (itr != _badges.end(), "certificate's issuer is invalid");
+	check (itr->issuer == issuer, "badge does not belong to issuer");
+
+	_certs.modify( cert_itr, issuer, [&]( auto& s ) {
+		s.state = CertificationState::REVOKED;
+	});
 }
 
 
-ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint64_t certid, bool requireclaim) {
+ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint64_t cert_id, bool require_claim) {
 	require_auth(get_self());
 }
 
 
-ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& certids) {
+ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& cert_ids) {
 	require_auth( claimer );
 	require_recipient( claimer );
 	
@@ -141,15 +180,15 @@ ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& certids) {
 	ccerts certs_t(_self, claimer.value);
 	
 	std::map< name, std::map< uint64_t, name > > uniqissuer;
-	for( size_t i = 0; i < certids.size(); ++i ) {
+	for( size_t i = 0; i < cert_ids.size(); ++i ) {
 
-		auto itrc = offert.find( certids[i] );
+		auto itrc = offert.find( cert_ids[i] );
 
 		check(itrc != offert.end(), "Cannot find at least one of the certs you're attempting to claim.");
-		check(claimer == itrc->offeredto, "At least one of the certs has not been offerred to you.");
+		check(claimer == itrc->offered_to, "At least one of the certs has not been offerred to you.");
 
 		ccerts certs_f( _self, itrc->owner.value );
-		auto itr = certs_f.find( certids[i] );
+		auto itr = certs_f.find( cert_ids[i] );
 		check(itr != certs_f.end(), "Cannot find at least one of the certs you're attempting to claim.");
 
 		check(itrc->owner.value == itr->owner.value, "Owner was changed for at least one of the items!?");   
@@ -157,35 +196,25 @@ ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& certids) {
 		certs_t.emplace( claimer, [&]( auto& s ) {     
 			s.id = itr->id;
 			s.owner = claimer;
-			s.issuer = itr->issuer;
-			s.idata = itr->idata; 		// immutable data
+			s.encripted_data = itr->encripted_data; 		// immutable data
 		});
 
 		certs_f.erase(itr);
 		offert.erase(itrc);
 
-		//Events
-		uniqissuer[itr->issuer][certids[i]] = itrc->owner;
 	}
 
-	//Send Event as deferred	
-	auto uniqissuerIt = uniqissuer.begin(); 
-	while(uniqissuerIt != uniqissuer.end() ) {
-		name keyissuer = (*uniqissuerIt).first; 
-		sendEvent(keyissuer, claimer, "cbclaim"_n, std::make_tuple(claimer, uniqissuer[keyissuer]));
-		uniqissuerIt++;
-	}
 }
 
 
-ACTION cryptobadge::canceloffer( name issuer, std::vector<uint64_t>& certids){
+ACTION cryptobadge::canceloffer( name issuer, std::vector<uint64_t>& cert_ids){
 
 	require_auth( issuer );
 	
 	offers offert(_self, _self.value);
 
-	for( size_t i = 0; i < certids.size(); ++i ) {
-		auto itr = offert.find( certids[i] );
+	for( size_t i = 0; i < cert_ids.size(); ++i ) {
+		auto itr = offert.find( cert_ids[i] );
 
 		check ( itr != offert.end(), "The offer for at least one of the certs was not found." );
 		check (issuer.value == itr->owner.value, "You're not the owner of at least one of the certs whose offers you're attempting to cancel.");
@@ -195,7 +224,7 @@ ACTION cryptobadge::canceloffer( name issuer, std::vector<uint64_t>& certids){
 }
 
 
-ACTION cryptobadge::removecert( name owner, std::vector<uint64_t>& certids, string memo ) {
+ACTION cryptobadge::removecert( name owner, std::vector<uint64_t>& cert_ids, string memo ) {
 
 	require_auth( owner );	
 
@@ -204,92 +233,18 @@ ACTION cryptobadge::removecert( name owner, std::vector<uint64_t>& certids, stri
 		
 	std::map< name, std::vector<uint64_t> > uniqissuer;
 	
-	for( size_t i = 0; i < certids.size(); ++i ) {
+	for( size_t i = 0; i < cert_ids.size(); ++i ) {
 		
-		auto itr = certs_f.find( certids[i] );
+		auto itr = certs_f.find( cert_ids[i] );
 		check(itr != certs_f.end(), "At least one of the certs was not found.");
 
 		check(owner.value == itr->owner.value, "At least one of the certs you're attempting to burn is not yours.");
 
-		auto itrc = offert.find( certids[i] );
+		auto itrc = offert.find( cert_ids[i] );
 		check ( itrc == offert.end(), "At least one of the certs has an open offer and cannot be burned." );
 		
 		certs_f.erase(itr);
 		
-		//Events
-		uniqissuer[itr->issuer].push_back(certids[i]);
-	}
-	
-	//Send Event as deferred
-	auto uniqissuerIt = uniqissuer.begin(); 
-	while(uniqissuerIt != uniqissuer.end() ) {
-		name keyissuer = (*uniqissuerIt).first; 
-		sendEvent(keyissuer, owner, "cbrevoke"_n, std::make_tuple(owner, uniqissuer[keyissuer], memo));
-		uniqissuerIt++;
-	}
-}
-
-ACTION cryptobadge::attach( name owner, uint64_t certid, string data) {
-  
-
-	require_auth( owner );
-	
-	ccerts certs_f( _self, owner.value );
-
-	auto itr = certs_f.find( certid );
-	check(itr != certs_f.end(), "certid cannot be found");
-
-	check(owner.value == itr->owner.value, "the certs does not belong to owner"); 
-
-	checksum256 hashed;
-	hashed = sha256((char *)&data, data.length());
-	//Todo: check attached data match with certification data
-	//check(compareHash(itr->idata, hashed), "the hashed data not the same with current one"); 
-
-	ccertinfos _ccertinfos(_self, owner.value);
-	auto ci_itr = _ccertinfos.find( certid );
-
-	check (ci_itr == _ccertinfos.end(), "certid already attach");
-
-	_ccertinfos.emplace( owner, [&]( auto& s ) {  
-	  s.cert_id = itr->id;
-		s.cert_content = data;
-	});
-	
-}
-
-
-ACTION cryptobadge::detach( name owner, std::vector<uint64_t>& certids) {
-
-	require_auth( owner );	
-
-	ccerts certs_f( _self, owner.value );
-	ccertinfos _ccertinfos(_self, owner.value);
-		
-	std::map< name, std::vector<uint64_t> > uniqissuer;
-	
-	for( size_t i = 0; i < certids.size(); ++i ) {
-		
-		auto itr = certs_f.find( certids[i] );
-		check(itr != certs_f.end(), "At least one of the certs was not found.");
-
-		check(owner.value == itr->owner.value, "At least one of the certs you're attempting to burn is not yours.");
-
-		auto itrc = _ccertinfos.find( certids[i] );
-		check ( itrc == _ccertinfos.end(), "At least one of the certs has no attached info" );
-		
-		_ccertinfos.erase(itrc);
-		
-		//Events
-		uniqissuer[itr->issuer].push_back(certids[i]);
-	}
-	
-	//Send Event as deferred
-	auto uniqissuerIt = uniqissuer.begin(); 
-	while(uniqissuerIt != uniqissuer.end() ) {
-		name keyissuer = (*uniqissuerIt).first; 
-		sendEvent(keyissuer, owner, "cbdettach"_n, std::make_tuple(owner, uniqissuer[keyissuer]));
-		uniqissuerIt++;
 	}
 	
 }
@@ -305,14 +260,14 @@ uint64_t cryptobadge::getid(uint64_t gindex){
 
 	uint64_t resid;
 	if (gindex == DEFER) {
-		_cstate.deferid++;
-		resid = _cstate.deferid;
+		_cstate.defer_id++;
+		resid = _cstate.defer_id;
 	} else if(gindex == CERT) {
-		_cstate.certid++;
-		resid = _cstate.certid;
+		_cstate.cert_id++;
+		resid = _cstate.cert_id;
 	} else if(gindex == BADGE){
-		_cstate.badgeid++;
-		resid = _cstate.badgeid;
+		_cstate.badge_id++;
+		resid = _cstate.badge_id;
 	}
 
 	config.set(_cstate, _self);
@@ -329,15 +284,5 @@ void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std
 	sevent.send(getid(DEFER), rampayer);
 }
 
-bool cryptobadge::compareHash(const checksum256& current_hash, const checksum256&  input_hash) {
 
-        const uint64_t *current64 = reinterpret_cast<const uint64_t *>(&current_hash);
-		const uint64_t *input64 = reinterpret_cast<const uint64_t *>(&input_hash);
-
-		for(int i = 0 ; i < 4; ++i){
-            if(current64[i] != input64[i]) return false;
-        }
-        return true;
-}
-
-EOSIO_DISPATCH( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(createcert)(createlog)(removecert)(canceloffer)(claimcert)(attach)(detach))
+EOSIO_DISPATCH( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(removecert)(canceloffer)(claimcert)(revokecert)(expirecert))
