@@ -38,6 +38,7 @@ hydra login
 ```bash
 yarn install
 ```
+cd cryptobadge
 
 3. Run test:
 
