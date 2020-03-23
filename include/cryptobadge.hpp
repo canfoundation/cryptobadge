@@ -237,11 +237,7 @@ private:
 	{
 		uint64_t cert_id;
 		string cert_content;
-
 		auto primary_key() const
-		{
-			return cert_id;
-		}
 	};
 
 	typedef eosio::multi_index<"v1.certinfos"_n, v1_certinfo> v1_certinfos;
@@ -255,7 +251,6 @@ private:
 
 		v1_global() {}
 		name ram_payer_account = "ram.can"_n;
-		name governance_design = "governance"_n;
 
 		EOSLIB_SERIALIZE(v1_global, (ram_payer_account)(governance_design))
 	};
@@ -269,16 +264,4 @@ private:
 
 	//refer govenance design
 	TABLE v1_community
-	{
-		name community_account;
-		name creator;
-		string community_name;
-		vector<uint64_t> member_badge;
-		string community_url;
-		string description;
-
-		uint64_t primary_key() const { return community_account.value; }
-	};
-
-	typedef eosio::multi_index<"v1.community"_n, v1_community> v1_community_table;
 };

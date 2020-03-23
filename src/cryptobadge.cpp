@@ -186,25 +186,8 @@ ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 
 ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, string reason ) {
 	require_auth(issuer);
-	require_auth( _self );
-
 	v1_certs _certs(_self, owner.value);
-	auto cert_itr = _certs.find(cert_id);
 
-	check (cert_itr != _certs.end(), "cert does not exist");
-
-	v1_badges _badges( _self, issuer.value );
-	auto itr = _badges.find( cert_itr->badge_id );
-	check (itr != _badges.end(), "certificate's issuer is invalid");
-	check (itr->issuer == issuer, "badge does not belong to issuer");
-
-	_certs.modify( cert_itr, issuer, [&]( auto& s ) {
-		s.state = CertificationState::REVOKED;
-	});
-}
-
-ACTION cryptobadge::issuelog( name issuer, name owner, uint64_t cert_id, const checksum256 & issued_tx_id) {
-	require_auth(get_self());
 	require_recipient( owner );
 }
 
