@@ -155,7 +155,7 @@ private:
 			return issuer.value;
 		}
 	};
-	typedef multi_index<"issuers"_n, cissuer> issuers;
+	typedef multi_index<"v1.issuers"_n, cissuer> issuers;
 
 	/*
 	* Badges table which stores information about simple badges.
@@ -171,7 +171,7 @@ private:
 		uint64_t by_issuer() const { return issuer.value; }
 	};
 
-	typedef eosio::multi_index<"cbadges"_n, cbadge,
+	typedef eosio::multi_index<"v1.badges"_n, cbadge,
 							   eosio::indexed_by<"issuer"_n, eosio::const_mem_fun<cbadge, uint64_t, &cbadge::by_issuer>>>
 		cbadges;
 
@@ -203,7 +203,7 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"ccerts"_n, ccert,
+	typedef eosio::multi_index<"v1.certs"_n, ccert,
 							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_badge_id>>,
 							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_owner>>>
 		ccerts;
@@ -223,7 +223,7 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"ccertinfos"_n, ccertinfo> ccertinfos;
+	typedef eosio::multi_index<"v1.certinfo"_n, ccertinfo> ccertinfos;
 
 	/*
 		* Offers table keeps records of open offers of certifications (ie. certifications waiting to be claimed by their
@@ -252,7 +252,7 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"offers"_n, coffer,
+	typedef eosio::multi_index<"v1.offers"_n, coffer,
 							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_owner>>,
 							   eosio::indexed_by<"offeredto"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_offered_to>>>
 		offers;
@@ -272,7 +272,7 @@ private:
 		EOSLIB_SERIALIZE(global, (defer_id)(cert_id)(badge_id))
 	};
 
-	typedef eosio::singleton<"global"_n, global> conf;
+	typedef eosio::singleton<"v1.global"_n, global> conf;
 	global _cstate;
 
 	enum gindex : uint8_t
