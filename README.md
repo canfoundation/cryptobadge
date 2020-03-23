@@ -17,7 +17,6 @@ Dependencies:
 * [eosio.cdt v1.7.x](https://github.com/EOSIO/eosio.cdt/releases/tag/v1.7.0)
 
 Build the contracts:
-
 ```
 cd cryptobadge
 
@@ -40,7 +39,6 @@ Actions:
    - Create a new badge
    - **issuer** the account registering as a issuer
    - **badge_id** the id of badge, should be unique in scope of issuer
-   - **version** the version of badge
    - **name** the name of badge
    - **image_url** the url of badge
    - **path** the path of badge
@@ -50,7 +48,6 @@ Actions:
 ## badge::updatebadge issuer badge_id version name image_url path description criteria
    - **issuer** account has created badge
    - **badge_id** id of badge
-   - **newVersion** the new version of badge
    - **name** the name of badge
    - **image_url** the url of badge
    - **path** the path of badge

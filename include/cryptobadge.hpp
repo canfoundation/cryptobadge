@@ -41,10 +41,11 @@ public:
 	/*
 		* Create a new badge.
 		*
-		* issuer			- badge's issuer, who will able to updated badge's mdata;
-		* version			- version of badge data;
+		* issuer		- badge's issuer, who will able to updated badge's mdata;
+		* badge_id		- unique id;		
+		* name			- badge name;			
 		* image_url		- image url of badge;
-		* path				- path of badge;
+		* path			- path of badge;
 		* description	- description of badge;
 		* criteria		- criteria of badge;
 		*/
@@ -54,9 +55,7 @@ public:
 		* Update badges data. Action is available only for issuers.
 		*
 		* issuer			- issuers account;
-		* owner				- current badges owner;
 		* badge_id			- badge id to update;
-		* version			- version of badge;
 		* name				- name of badge;
 		* image_url		- image url of badge;
 		* path				- path of badge;
@@ -68,15 +67,19 @@ public:
 	/*
 		* Create a new certification.
 		*
-		* issuer	- badge owner;
-		* owner		- certification owner;
-		* idata		- sha256 string with encrypted certifications data;
-		* require_claim	- true or false. If disabled, upon creation, the certification will be transfered to owner (but
+		* issuer			- badge owner;
+		* owner				- certification owner;
+		* badge_id			- The badge id which was issued to user;
+		* badge_revision	- The badge revision;		
+		* cert_id			- The certification id;
+		* encrypted_data	- The encrypted certifications data;
+		* encrypted_data	- expired time;
+		* require_claim		- true or false. If disabled, upon creation, the certification will be transfered to owner (but
 		*		  but issuer'S memory will be used until the certification is transferred again).  If enabled,
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-	ACTION issuebadge(name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string & encrypted_data, uint64_t state, bool require_claim);
+	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim);
 
 	/*
 		* Update certification state to expired.
@@ -155,7 +158,11 @@ private:
 			return issuer.value;
 		}
 	};
+<<<<<<< HEAD
+	typedef multi_index<"v1.issuers"_n, cissuer> issuers;
+=======
 	typedef multi_index<"issuers"_n, cissuer> issuers;
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 
 	/*
 	* Badges table which stores information about simple badges.
@@ -171,7 +178,11 @@ private:
 		uint64_t by_issuer() const { return issuer.value; }
 	};
 
+<<<<<<< HEAD
+	typedef eosio::multi_index<"v1.badges"_n, cbadge,
+=======
 	typedef eosio::multi_index<"cbadges"_n, cbadge,
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 							   eosio::indexed_by<"issuer"_n, eosio::const_mem_fun<cbadge, uint64_t, &cbadge::by_issuer>>>
 		cbadges;
 
@@ -203,7 +214,11 @@ private:
 		}
 	};
 
+<<<<<<< HEAD
+	typedef eosio::multi_index<"v1.certs"_n, ccert,
+=======
 	typedef eosio::multi_index<"ccerts"_n, ccert,
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_badge_id>>,
 							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_owner>>>
 		ccerts;
@@ -223,7 +238,11 @@ private:
 		}
 	};
 
+<<<<<<< HEAD
+	typedef eosio::multi_index<"v1.certinfo"_n, ccertinfo> ccertinfos;
+=======
 	typedef eosio::multi_index<"ccertinfos"_n, ccertinfo> ccertinfos;
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 
 	/*
 		* Offers table keeps records of open offers of certifications (ie. certifications waiting to be claimed by their
@@ -252,7 +271,11 @@ private:
 		}
 	};
 
+<<<<<<< HEAD
+	typedef eosio::multi_index<"v1.offers"_n, coffer,
+=======
 	typedef eosio::multi_index<"offers"_n, coffer,
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_owner>>,
 							   eosio::indexed_by<"offeredto"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_offered_to>>>
 		offers;
@@ -272,7 +295,11 @@ private:
 		EOSLIB_SERIALIZE(global, (defer_id)(cert_id)(badge_id))
 	};
 
+<<<<<<< HEAD
+	typedef eosio::singleton<"v1.global"_n, global> conf;
+=======
 	typedef eosio::singleton<"global"_n, global> conf;
+>>>>>>> beada7b1f4ac75b4d6c438450605e1f12f8cd910
 	global _cstate;
 
 	enum gindex : uint8_t
