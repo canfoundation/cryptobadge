@@ -8,14 +8,16 @@ const name ram_payer_system = "ram.can"_n;
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 	require_auth( issuer );
-	require_recipient( issuer );
-	
+
+	auto ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
+
 	issuers _issuer(_self, _self.value);
 	auto itr = _issuer.find( issuer.value );
 
 	check (itr == _issuer.end(), "issuer already registered");
 
-	_issuer.emplace( issuer, [&]( auto& s ) {     
+	_issuer.emplace( ram_payer, [&]( auto& s ) {     
 		s.issuer = issuer;
 		s.data = data;	
 	});
@@ -23,14 +25,16 @@ ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	require_auth( issuer );
-	require_recipient( issuer );
+
+	auto ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
 	issuers _issuer(_self, _self.value);
 	auto itr = _issuer.find( issuer.value );
 
 	check ( itr != _issuer.end(), "issuer not registered" );
 	
-	_issuer.modify( itr, issuer, [&]( auto& s ) {
+	_issuer.modify( itr, ram_payer, [&]( auto& s ) {
 		s.data = data;	
 	});
 }
@@ -126,6 +130,9 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 	require_auth(updater);
 
+	auto ram_payer = updater;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
+
 	ccerts _certs(_self, owner.value);
 	auto cert_itr = _certs.find(cert_id);
 
@@ -135,13 +142,14 @@ ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 	check (cert_itr->expire_at < current_time_point().sec_since_epoch(), "Certificate has not been expired");
 	check (cert_itr->state == CertificationState::CERTIFIED, "Certificate has been revoked or expired");
 
-	_certs.modify( cert_itr, updater, [&]( auto& s ) {
+	_certs.modify( cert_itr, ram_payer, [&]( auto& s ) {
 		s.state = CertificationState::EXPIRED;
 	});
 }
 
 ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, string reason ) {
 	require_auth(issuer);
+	require_auth( _self );
 
 	ccerts _certs(_self, owner.value);
 	auto cert_itr = _certs.find(cert_id);
@@ -167,7 +175,6 @@ ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint
 ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 	require_auth( _self );
 	require_auth( claimer );
-	require_recipient( claimer );
 
  	ccerts certs_ghost(_self, ghost_account.value);
 	auto itrc = certs_ghost.find( cert_id );
