@@ -1,8 +1,9 @@
 
 #include "../include/cryptobadge.hpp"
 
-const uint64_t BADGE_SCHEMA_V1 = 1000;
-const name GOVERNANCE_DESIGN = "governance"_n;
+const name governance_design = "governance"_n;
+const name ghost_account = "ghost.can"_n;
+const name ram_payer_system = "ram.can"_n;
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
@@ -37,10 +38,13 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria) {
 	require_auth( issuer );
 	require_auth( _self );
+
+	auto ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 	
 	// TODO check if issuer is community account
 	issuers _issuer(_self, _self.value);
-	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	community_table _community(governance_design, governance_design.value);
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
 		auto community_itr = _community.find( issuer.value );
@@ -51,7 +55,7 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 	auto badge_itr = _badges.find(badge_id);
 	check ( badge_itr == _badges.end(), "badge_id already exist" );
 
-	_badges.emplace( issuer, [&]( auto& s ) {
+	_badges.emplace( ram_payer, [&]( auto& s ) {
 		s.badge_id = badge_id; 
 		s.issuer = issuer;
 	});
@@ -62,13 +66,16 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 	require_auth( issuer );
 	require_auth( _self );
 
+	auto ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
+
 	cbadges _badges( _self, issuer.value );
 	auto itr = _badges.find( badge_id );
 
 	check (itr != _badges.end(), "badge does not exist");
 	check (itr->issuer == issuer, "badge does not belong to issuer");
 
-	_badges.modify( itr, issuer, [&]( auto& s ) {
+	_badges.modify( itr, ram_payer, [&]( auto& s ) {
 		s.version = itr->version + 1;
 	});
 }
@@ -78,10 +85,13 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	require_auth( issuer );
 	require_auth( _self );
 
+	auto ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
+
 	check( is_account( owner ), "owner account does not exist");
 
 	issuers _issuer(_self, _self.value);
-	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	community_table _community(governance_design, governance_design.value);
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
 		auto community_itr = _community.find( issuer.value );
@@ -96,37 +106,19 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	check (badge_itr != _badges.end(), "badge does not exist");
 	
 	
-	name certOwner = owner;
+	check (!(owner == ghost_account && require_claim == 1), "require_claim only owner == ghost account.");
 	
-	check (!(issuer.value == owner.value && require_claim == 1), "require_claim only issuer == owner.");
-	
-	if (require_claim){
-		certOwner = issuer;
-		//add info to offers table
-		offers _offert(_self, _self.value);
-		auto offer_itr = _offert.find(cert_id);
-		check (offer_itr == _offert.end(), "offer already exist");
-
-		_offert.emplace( issuer, [&]( auto& s ) {     
-			s.cert_id = cert_id;
-			s.offered_to = owner;
-			s.owner = issuer;
-			s.date = current_time_point();
-		});
-	}
-	
-	ccerts _certs(_self, certOwner.value);
+	ccerts _certs(_self, owner.value);
 	auto cert_itr = _certs.find(cert_id);
 	check (cert_itr == _certs.end(), "cert already exist");
 
-	_certs.emplace( issuer, [&]( auto& s ) {     
+	_certs.emplace( ram_payer, [&]( auto& s ) {     
 		s.id = cert_id;
 		s.badge_id = badge_id;
 		s.badge_revision = badge_revision;
 		s.owner = owner;
 		s.state = CertificationState::CERTIFIED;
 		s.expire_at = expire_at;
-		s.encripted_data = encripted_data;
 	});
 	
 }
@@ -139,7 +131,7 @@ ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 
 	check (cert_itr != _certs.end(), "cert does not exist");
 
-  check (cert_itr->expire_at, "Certificate can not be expired");
+  	check (cert_itr->expire_at, "Certificate can not be expired");
 	check (cert_itr->expire_at < current_time_point().sec_since_epoch(), "Certificate has not been expired");
 	check (cert_itr->state == CertificationState::CERTIFIED, "Certificate has been revoked or expired");
 
@@ -172,81 +164,37 @@ ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint
 }
 
 
-ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& cert_ids) {
+ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
+	require_auth( _self );
 	require_auth( claimer );
 	require_recipient( claimer );
-	
-	offers offert(_self, _self.value);
-	ccerts certs_t(_self, claimer.value);
-	
-	std::map< name, std::map< uint64_t, name > > uniqissuer;
-	for( size_t i = 0; i < cert_ids.size(); ++i ) {
 
-		auto itrc = offert.find( cert_ids[i] );
+ 	ccerts certs_ghost(_self, ghost_account.value);
+	auto itrc = certs_ghost.find( cert_id );
+	check(itrc != certs_ghost.end(), "Cannot find the certs you're attempting to claim.");
 
-		check(itrc != offert.end(), "Cannot find at least one of the certs you're attempting to claim.");
-		check(claimer == itrc->offered_to, "At least one of the certs has not been offerred to you.");
+	cbadges _badges( _self, issuer.value );
+	auto badge_itr = _badges.find( itrc->badge_id );
 
-		ccerts certs_f( _self, itrc->owner.value );
-		auto itr = certs_f.find( cert_ids[i] );
-		check(itr != certs_f.end(), "Cannot find at least one of the certs you're attempting to claim.");
+	check (badge_itr != _badges.end(), "badge of certification index does not exist");
 
-		check(itrc->owner.value == itr->owner.value, "Owner was changed for at least one of the items!?");   
+	auto ram_payer = claimer;
+	if(has_auth(issuer)) ram_payer = issuer;
+	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-		certs_t.emplace( claimer, [&]( auto& s ) {     
-			s.id = itr->id;
-			s.owner = claimer;
-			s.encripted_data = itr->encripted_data; 		// immutable data
-		});
+	ccerts certs_claimer(_self, claimer.value);
 
-		certs_f.erase(itr);
-		offert.erase(itrc);
-
-	}
-
-}
-
-
-ACTION cryptobadge::canceloffer( name issuer, std::vector<uint64_t>& cert_ids){
-
-	require_auth( issuer );
-	
-	offers offert(_self, _self.value);
-
-	for( size_t i = 0; i < cert_ids.size(); ++i ) {
-		auto itr = offert.find( cert_ids[i] );
-
-		check ( itr != offert.end(), "The offer for at least one of the certs was not found." );
-		check (issuer.value == itr->owner.value, "You're not the owner of at least one of the certs whose offers you're attempting to cancel.");
-
-		offert.erase(itr);
-	}
-}
-
-
-ACTION cryptobadge::removecert( name owner, std::vector<uint64_t>& cert_ids, string memo ) {
-
-	require_auth( owner );	
-
-	ccerts certs_f( _self, owner.value );
-	offers offert(_self, _self.value);
-		
-	std::map< name, std::vector<uint64_t> > uniqissuer;
-	
-	for( size_t i = 0; i < cert_ids.size(); ++i ) {
-		
-		auto itr = certs_f.find( cert_ids[i] );
-		check(itr != certs_f.end(), "At least one of the certs was not found.");
-
-		check(owner.value == itr->owner.value, "At least one of the certs you're attempting to burn is not yours.");
-
-		auto itrc = offert.find( cert_ids[i] );
-		check ( itrc == offert.end(), "At least one of the certs has an open offer and cannot be burned." );
-		
-		certs_f.erase(itr);
-		
-	}
-	
+	auto itr = certs_claimer.find( cert_id );
+	check(itr == certs_claimer.end(), "the certs you're attempting to claim already exist.");
+	certs_claimer.emplace( ram_payer, [&]( auto& row ) {     
+		row.id = itrc->id;
+		row.badge_id = itrc->badge_id;
+		row.badge_revision = itrc->badge_revision;
+		row.owner = itrc->owner;
+		row.state = itrc->state;
+		row.expire_at = itrc->expire_at;
+	});
+	certs_ghost.erase(itrc);
 }
 
 /*
@@ -284,5 +232,25 @@ void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std
 	sevent.send(getid(DEFER), rampayer);
 }
 
+#define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                       \
+    extern "C"                                                                                \
+    {                                                                                         \
+        void apply(uint64_t receiver, uint64_t code, uint64_t action)                         \
+        {                                                                                     \
+            auto self = receiver;                                                             \
+            if (code == self || code == "eosio.token"_n.value || action == "onerror"_n.value) \
+            {                                                                                 \
+                if (action == "transfer"_n.value)                                             \
+                {                                                                             \
+                    check(code == "eosio.token"_n.value, "Must transfer Token");              \
+                }                                                                             \
+                switch (action)                                                               \
+                {                                                                             \
+                    EOSIO_DISPATCH_HELPER(TYPE, MEMBERS)                                      \
+                }                                                                             \
+                /* does not allow destructor of thiscontract to run: eosio_exit(0); */        \
+            }                                                                                 \
+        }                                                                                     \
+    }
 
-EOSIO_DISPATCH( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(removecert)(canceloffer)(claimcert)(revokecert)(expirecert))
+EOSIO_ABI_CUSTOM( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(claimcert)(revokecert)(expirecert))

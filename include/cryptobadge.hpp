@@ -104,25 +104,7 @@ public:
 		* claimer	- account claiming the badge;
 		* cert_ids	- array of cert_id's to claim;
 		*/
-	ACTION claimcert(name claimer, std::vector<uint64_t> & cert_ids);
-
-	/*
-		* Cancel and remove offer. Available for the certification owner.
-		*
-		* issuer	- current certification issuer account;
-		* cert_ids	- array of cert_id's to cancel from offer;
-		*/
-	ACTION canceloffer(name issuer, std::vector<uint64_t> & cert_ids);
-
-	/*
-		* Remove certification {{cert_id}}. This action is only available for the certification owner. After executing, the
-		* certification will disappear forever, and RAM used for certification will be released.
-		*
-		* owner		- current certification owner account;
-		* cert_ids	- array of cert_id's to remove;
-		* memo		- memo for remove action;
-		*/
-	ACTION removecert(name owner, std::vector<uint64_t> & cert_ids, string memo);
+	ACTION claimcert(name claimer, name issuer, uint64_t cert_ids);
 
 	/*
 		* Empty action. Used by create action to log cert_id so that third party explorers can
@@ -135,7 +117,7 @@ private:
 	{
 		CERTIFIED = 0,
 		EXPIRED,
-		REVOKED
+		REVOKED	
 	};
 
 	uint64_t getid(uint64_t gindex);
@@ -190,7 +172,7 @@ private:
 		name owner;
 		uint64_t state;
 		uint64_t expire_at;
-		string encripted_data;
+		//string encripted_data;
 
 		auto primary_key() const
 		{
@@ -206,7 +188,7 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"v1.certs"_n, ccert,
+	typedef eosio::multi_index<"v2.certs"_n, ccert,
 							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_badge_id>>,
 							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_owner>>>
 		ccerts;
