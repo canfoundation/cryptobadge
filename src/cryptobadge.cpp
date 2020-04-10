@@ -73,7 +73,7 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 	});
 }
 
-ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim) {
+ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim) {
 
 	require_auth( issuer );
 	require_auth( _self );
@@ -100,7 +100,7 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	
 	check (!(issuer.value == owner.value && require_claim == 1), "require_claim only issuer == owner.");
 	
-	if (require_claim){
+	if (require_claim) {
 		certOwner = issuer;
 		//add info to offers table
 		offers _offert(_self, _self.value);
@@ -126,7 +126,6 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 		s.owner = owner;
 		s.state = CertificationState::CERTIFIED;
 		s.expire_at = expire_at;
-		s.encripted_data = encripted_data;
 	});
 	
 }
@@ -195,15 +194,17 @@ ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& cert_ids) {
 
 		certs_t.emplace( claimer, [&]( auto& s ) {     
 			s.id = itr->id;
+			s.badge_id = itr->badge_id;
+			s.badge_revision = itr->badge_revision;
 			s.owner = claimer;
-			s.encripted_data = itr->encripted_data; 		// immutable data
+			s.state = itr->state;
+			s.expire_at = itr->expire_at;
 		});
 
 		certs_f.erase(itr);
 		offert.erase(itrc);
 
 	}
-
 }
 
 

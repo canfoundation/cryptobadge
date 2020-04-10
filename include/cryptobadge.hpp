@@ -79,7 +79,7 @@ public:
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim);
+	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim);
 
 	/*
 		* Update certification state to expired.
@@ -190,7 +190,6 @@ private:
 		name owner;
 		uint64_t state;
 		uint64_t expire_at;
-		string encripted_data;
 
 		auto primary_key() const
 		{
