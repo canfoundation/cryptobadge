@@ -142,5 +142,16 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 
 {{updater}} update certification with ID {{cert_id}} of {{owner}} to expired.
 
+<h1 class="contract">setconfig</h1>
+
+---
+spec_version: "0.1.0"
+title: Update Certification state to expire
+summary: 'Update Certification state to expire'
+icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
+---
+
+set configuration for badge contract.
+
 
 
