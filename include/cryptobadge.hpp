@@ -130,6 +130,12 @@ public:
 		*/
 	ACTION createlog(name issuer, name owner, checksum256 & idata, uint64_t cert_id, bool require_claim);
 
+	/*
+		* Set global config for badge contract
+		* 
+		*/
+	ACTION setconfig(name governance_contract_name);
+
 private:
 	enum CertificationState
 	{
@@ -267,14 +273,16 @@ private:
 	{
 
 		global() {}
-		uint64_t defer_id = 100000000000000;
-		uint64_t cert_id = 1000000;
-		uint64_t badge_id = 0000000;
+		uint64_t defer_id = 10000000000000;
+		uint64_t cert_id = 100000;
+		uint64_t badge_id = 0;
+		name governance_contract_name = "governance"_n;
 
-		EOSLIB_SERIALIZE(global, (defer_id)(cert_id)(badge_id))
+		EOSLIB_SERIALIZE(global, (defer_id)(cert_id)(badge_id)(governance_contract_name))
 	};
 
 	typedef eosio::singleton<"v1.global"_n, global> conf;
+	typedef eosio::multi_index<"v1.global"_n, global> fconf;
 	global _cstate;
 
 	enum gindex : uint8_t

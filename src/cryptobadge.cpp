@@ -2,7 +2,6 @@
 #include "../include/cryptobadge.hpp"
 
 const uint64_t BADGE_SCHEMA_V1 = 1000;
-const name GOVERNANCE_DESIGN = "governance"_n;
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
@@ -37,10 +36,14 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria) {
 	require_auth( issuer );
 	require_auth( _self );
+
+	conf config(_self, _self.value);
+	_cstate = config.exists() ? config.get() : global{};
+	const eosio::name governance_contract_name = _cstate.governance_contract_name;
 	
 	// TODO check if issuer is community account
 	issuers _issuer(_self, _self.value);
-	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	community_table _community(governance_contract_name, governance_contract_name.value);
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
 		auto community_itr = _community.find( issuer.value );
@@ -78,12 +81,16 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	require_auth( issuer );
 	require_auth( _self );
 
+	conf config(_self, _self.value);
+	_cstate = config.exists() ? config.get() : global{};
+	const name governance_contract_name = _cstate.governance_contract_name;
+
 	check( is_account( owner ), "owner account does not exist");
 
 	issuers _issuer(_self, _self.value);
-	community_table _community(GOVERNANCE_DESIGN, GOVERNANCE_DESIGN.value);
+	community_table _community(governance_contract_name, governance_contract_name.value);
 	auto issuer_itr = _issuer.find( issuer.value );
-	if(issuer_itr == _issuer.end()){
+	if(issuer_itr == _issuer.end()) {
 		auto community_itr = _community.find( issuer.value );
 		check ( community_itr != _community.end(), "issuer does not exist" );
 	}
@@ -207,7 +214,6 @@ ACTION cryptobadge::claimcert( name claimer, std::vector<uint64_t>& cert_ids) {
 	}
 }
 
-
 ACTION cryptobadge::canceloffer( name issuer, std::vector<uint64_t>& cert_ids){
 
 	require_auth( issuer );
@@ -250,14 +256,24 @@ ACTION cryptobadge::removecert( name owner, std::vector<uint64_t>& cert_ids, str
 	
 }
 
+ACTION cryptobadge::setconfig(name governance_contract_name) {
+	require_auth( _self );
+
+	conf config(_self, _self.value);
+	_cstate = config.get_or_create(_self );
+
+	_cstate.governance_contract_name = governance_contract_name;
+
+	config.set(_cstate, _self);
+}
+
 /*
 * Increment, save and return id for a new certification.
 */
 uint64_t cryptobadge::getid(uint64_t gindex){
 
 	conf config(_self, _self.value);
-	_cstate = config.exists() ? config.get() : global{};
-
+	_cstate = config.get();
 
 	uint64_t resid;
 	if (gindex == DEFER) {
@@ -286,4 +302,4 @@ void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std
 }
 
 
-EOSIO_DISPATCH( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(removecert)(canceloffer)(claimcert)(revokecert)(expirecert))
+EOSIO_DISPATCH( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(removecert)(canceloffer)(claimcert)(revokecert)(expirecert)(setconfig))
