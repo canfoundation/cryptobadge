@@ -1,0 +1,21 @@
+{
+  "name": "cryptobadge",
+  "version": "1.0.0",
+  "description": "Testing cryptobadge smart contract with Hydra",
+  "main": "",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@klevoya/hydra": "*",
+    "jest": "^25.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.2",
+    "ts-jest": "^25.3.1",
+    "typescript": "^3.8.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
