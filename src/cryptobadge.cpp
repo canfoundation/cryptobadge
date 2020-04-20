@@ -1,14 +1,15 @@
 
 #include "../include/cryptobadge.hpp"
 
-const name governance_design = "governance"_n;
 const name non_can_account = ""_n;
-const name ram_payer_system = "ram.can"_n;
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 	require_auth( issuer );
 	require_auth( _self );
+
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
 
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
@@ -28,6 +29,9 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	require_auth( issuer );
 	require_auth( _self );
 
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
+	
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
@@ -45,17 +49,22 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 	require_auth( issuer );
 	require_auth( _self );
 
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
+
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
-	
-	// TODO check if issuer is community account
+
 	v1_issuers _issuer(_self, _self.value);
-	community_table _community(governance_design, governance_design.value);
+	community_table _community(g_state.governance_design, g_state.governance_design.value);
+	
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
 		auto community_itr = _community.find( issuer.value );
 		check ( community_itr != _community.end(), "issuer does not exist" );
 	}
+
+	// TODO check if issuer is community account
 
 	v1_badges _badges( _self, issuer.value );
 	auto badge_itr = _badges.find(badge_id);
@@ -72,6 +81,9 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 	require_auth( issuer );
 	require_auth( _self );
 
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
+
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
@@ -86,18 +98,22 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 	});
 }
 
-ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim) {
+ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim) {
 
 	require_auth( issuer );
 	require_auth( _self );
+
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
 
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
 	v1_issuers _issuer(_self, _self.value);
-	community_table _community(governance_design, governance_design.value);
+	community_table _community(g_state.governance_design, g_state.governance_design.value);
+
 	auto issuer_itr = _issuer.find( issuer.value );
-	if(issuer_itr == _issuer.end()){
+	if(issuer_itr == _issuer.end()) {
 		auto community_itr = _community.find( issuer.value );
 		check ( community_itr != _community.end(), "issuer does not exist" );
 	}
@@ -148,6 +164,9 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 	require_auth(updater);
 
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
+
 	auto ram_payer = updater;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
@@ -184,15 +203,18 @@ ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, strin
 	});
 }
 
-
-ACTION cryptobadge::createlog( name issuer, name owner, checksum256& idata, uint64_t cert_id, bool require_claim) {
+ACTION cryptobadge::createlog( name issuer, name owner, const checksum256 & issued_tx_id) {
 	require_auth(get_self());
+	require_recipient( owner );
 }
 
 
 ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 	require_auth( _self );
 	require_auth( claimer );
+
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	auto ram_payer_system = g_state.ram_payer_account;
 
  	v1_issuing_certs _issuing_certs(_self, issuer.value);
 	auto issuing_cert_itr = _issuing_certs.find( cert_id );
@@ -219,33 +241,32 @@ ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 		row.state = issuing_cert_itr->state;
 		row.expire_at = issuing_cert_itr->expire_at;
 	});
+	eosio::action(
+        permission_level{_self, "active"_n},
+        get_self(), "createlog"_n,
+        std::make_tuple(issuer, claimer, issuing_cert_itr->issued_tx_id))
+    .send();
+
 	_issuing_certs.erase(issuing_cert_itr);
 }
 
-/*
-* Increment, save and return id for a new certification.
-*/
-uint64_t cryptobadge::getid(uint64_t gindex){
+ACTION cryptobadge::setconfig(name ram_payer_account, name governance_design) {
+	require_auth( _self );
 
-	v1_global_table config(_self, _self.value);
-	_cstate = config.exists() ? config.get() : v1_global{};
+  if (!_global.exists())
+  {
+    v1_global default_config;
+    default_config.ram_payer_account = "ram.can"_n;
+    default_config.governance_design = "governance"_n;
+    _global.get_or_create(_self, default_config);
+  }
+  auto g_config = _global.get();
+  g_config.ram_payer_account = ram_payer_account;
+  g_config.governance_design = governance_design;
+  _global.set(g_config, _self);
 
-
-	uint64_t resid;
-	if (gindex == DEFER) {
-		_cstate.defer_id++;
-		resid = _cstate.defer_id;
-	} else if(gindex == CERT) {
-		_cstate.cert_id++;
-		resid = _cstate.cert_id;
-	} else if(gindex == BADGE){
-		_cstate.badge_id++;
-		resid = _cstate.badge_id;
-	}
-
-	config.set(_cstate, _self);
-	return resid;
 }
+
 
 checksum256 cryptobadge::gettrxid() {
     size_t size = transaction_size();
@@ -255,14 +276,6 @@ checksum256 cryptobadge::gettrxid() {
     return sha256( buf, read );
 }
 
-template<typename... Args>
-void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &adata) {
-
-	transaction sevent{};
-	sevent.actions.emplace_back( permission_level{_self, "active"_n}, issuer, seaction, adata);
-	sevent.delay_sec = 0;
-	sevent.send(getid(DEFER), rampayer);
-}
 
 #define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                       \
     extern "C"                                                                                \

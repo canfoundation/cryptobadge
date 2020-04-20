@@ -19,7 +19,7 @@ class[[eosio::contract]] cryptobadge : public contract
 
 public:
 	//using contract::contract;
-	cryptobadge(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
+	cryptobadge(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds),_global(_self, _self.value) {}
 
 	/*
 		* New issuer registration. issuer is required to create new badge. Markets *may* choose to use information here
@@ -79,7 +79,7 @@ public:
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encripted_data, uint64_t expire_at, bool require_claim);
+	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim);
 
 	/*
 		* Update certification state to expired.
@@ -110,8 +110,14 @@ public:
 		* Empty action. Used by create action to log cert_id so that third party explorers can
 		* easily get new certification ids and other information.
 		*/
-	ACTION createlog(name issuer, name owner, checksum256 & idata, uint64_t cert_id, bool require_claim);
+	ACTION createlog(name issuer, name owner, const checksum256 & issued_tx_id);
 	
+
+	/*
+		* Set global config for badge contract
+		* 
+		*/
+	ACTION setconfig(name ram_payer_account, name governance_design);
 
 private:
 	enum CertificationState
@@ -121,11 +127,7 @@ private:
 		REVOKED	
 	};
 
-	uint64_t getid(uint64_t gindex);
 	checksum256 gettrxid();
-
-	template <typename... Args>
-	void sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &tup);
 
 	/*
 		* issuers table. Can be used by badge markets, badge explorers, or wallets for correct badge
@@ -252,22 +254,18 @@ private:
 	{
 
 		v1_global() {}
-		uint64_t defer_id = 100000000000000;
-		uint64_t cert_id = 1000000;
-		uint64_t badge_id = 0000000;
+		name ram_payer_account = "ram.can"_n;
+		name governance_design = "governance"_n;
 
-		EOSLIB_SERIALIZE(v1_global, (defer_id)(cert_id)(badge_id))
+		EOSLIB_SERIALIZE(v1_global, (ram_payer_account)(governance_design))
 	};
 
 	typedef eosio::singleton<"v1.global"_n, v1_global> v1_global_table;
-	v1_global _cstate;
+	typedef eosio::multi_index<"v1.global"_n, v1_global> fv1_global_table;
+	// v1_global _cstate;
 
-	enum gindex : uint8_t
-	{
-		DEFER = 0,
-		CERT = 1,
-		BADGE = 2,
-	};
+	v1_global_table _global;
+	
 
 	//refer govenance design
 	TABLE communityf
