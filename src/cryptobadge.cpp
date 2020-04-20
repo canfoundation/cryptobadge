@@ -203,13 +203,13 @@ ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, strin
 	});
 }
 
-ACTION cryptobadge::createlog( name issuer, name owner, const checksum256 & issued_tx_id) {
+ACTION cryptobadge::issuelog( name issuer, name owner, uint64_t cert_id, const checksum256 & issued_tx_id) {
 	require_auth(get_self());
 	require_recipient( owner );
 }
 
 
-ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
+ACTION cryptobadge::claimbadge( name claimer, name issuer, uint64_t cert_id) {
 	require_auth( _self );
 	require_auth( claimer );
 
@@ -243,8 +243,8 @@ ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 	});
 	eosio::action(
         permission_level{_self, "active"_n},
-        get_self(), "createlog"_n,
-        std::make_tuple(issuer, claimer, issuing_cert_itr->issued_tx_id))
+        get_self(), "issuelog"_n,
+        std::make_tuple(issuer, claimer, cert_id, issuing_cert_itr->issued_tx_id))
     .send();
 
 	_issuing_certs.erase(issuing_cert_itr);
@@ -298,4 +298,4 @@ checksum256 cryptobadge::gettrxid() {
         }                                                                                     \
     }
 
-EOSIO_ABI_CUSTOM( cryptobadge, (regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(createlog)(claimcert)(revokecert)(expirecert))
+EOSIO_ABI_CUSTOM( cryptobadge, (setconfig)(regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(issuelog)(claimbadge)(revokecert)(expirecert))

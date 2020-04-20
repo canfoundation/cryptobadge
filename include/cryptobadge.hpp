@@ -104,13 +104,13 @@ public:
 		* claimer	- account claiming the badge;
 		* cert_ids	- array of cert_id's to claim;
 		*/
-	ACTION claimcert(name claimer, name issuer, uint64_t cert_ids);
+	ACTION claimbadge(name claimer, name issuer, uint64_t cert_ids);
 
 	/*
 		* Empty action. Used by create action to log cert_id so that third party explorers can
 		* easily get new certification ids and other information.
 		*/
-	ACTION createlog(name issuer, name owner, const checksum256 & issued_tx_id);
+	ACTION issuelog(name issuer, name owner, uint64_t cert_id, const checksum256 & issued_tx_id);
 	
 
 	/*
