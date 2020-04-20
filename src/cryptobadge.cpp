@@ -2,17 +2,18 @@
 #include "../include/cryptobadge.hpp"
 
 const name governance_design = "governance"_n;
-const name ghost_account = "ghost.can"_n;
+const name non_can_account = ""_n;
 const name ram_payer_system = "ram.can"_n;
 
 ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 	require_auth( issuer );
+	require_auth( _self );
 
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	issuers _issuer(_self, _self.value);
+	v1_issuers _issuer(_self, _self.value);
 	auto itr = _issuer.find( issuer.value );
 
 	check (itr == _issuer.end(), "issuer already registered");
@@ -25,11 +26,12 @@ ACTION cryptobadge::regissuer( name issuer, checksum256& data) {
 
 ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	require_auth( issuer );
+	require_auth( _self );
 
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	issuers _issuer(_self, _self.value);
+	v1_issuers _issuer(_self, _self.value);
 	auto itr = _issuer.find( issuer.value );
 
 	check ( itr != _issuer.end(), "issuer not registered" );
@@ -47,7 +49,7 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 	
 	// TODO check if issuer is community account
-	issuers _issuer(_self, _self.value);
+	v1_issuers _issuer(_self, _self.value);
 	community_table _community(governance_design, governance_design.value);
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
@@ -55,7 +57,7 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 		check ( community_itr != _community.end(), "issuer does not exist" );
 	}
 
-	cbadges _badges( _self, issuer.value );
+	v1_badges _badges( _self, issuer.value );
 	auto badge_itr = _badges.find(badge_id);
 	check ( badge_itr == _badges.end(), "badge_id already exist" );
 
@@ -73,7 +75,7 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	cbadges _badges( _self, issuer.value );
+	v1_badges _badges( _self, issuer.value );
 	auto itr = _badges.find( badge_id );
 
 	check (itr != _badges.end(), "badge does not exist");
@@ -92,38 +94,54 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	auto ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	check( is_account( owner ), "owner account does not exist");
-
-	issuers _issuer(_self, _self.value);
+	v1_issuers _issuer(_self, _self.value);
 	community_table _community(governance_design, governance_design.value);
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
 		auto community_itr = _community.find( issuer.value );
 		check ( community_itr != _community.end(), "issuer does not exist" );
 	}
-
-	require_recipient( owner );
 	
-	cbadges _badges( _self, issuer.value );
+	v1_badges _badges( _self, issuer.value );
 	auto badge_itr = _badges.find( badge_id );
 
 	check (badge_itr != _badges.end(), "badge does not exist");
 	
+	check ((is_account( owner ) && require_claim == 0) || (owner == non_can_account && require_claim == 1), "require_claim only for non CAN account.");
 	
-	check (!(owner == ghost_account && require_claim == 1), "require_claim only owner == ghost account.");
-	
-	ccerts _certs(_self, owner.value);
-	auto cert_itr = _certs.find(cert_id);
-	check (cert_itr == _certs.end(), "cert already exist");
+	if(require_claim){
+		// Non CAN account
+		v1_issuing_certs _issuing_certs(_self, issuer.value);
+		auto issuing_cert_itr = _issuing_certs.find(cert_id);
+		check (issuing_cert_itr == _issuing_certs.end(), "cert already exist");
 
-	_certs.emplace( ram_payer, [&]( auto& s ) {     
-		s.id = cert_id;
-		s.badge_id = badge_id;
-		s.badge_revision = badge_revision;
-		s.owner = owner;
-		s.state = CertificationState::CERTIFIED;
-		s.expire_at = expire_at;
-	});
+		_issuing_certs.emplace( ram_payer, [&]( auto& row ) {     
+			row.id = cert_id;
+			row.badge_id = badge_id;
+			row.badge_revision = badge_revision;
+			row.owner = owner;
+			row.state = CertificationState::CERTIFIED;
+			row.expire_at = expire_at;
+			row.issued_tx_id = gettrxid();
+
+		});		
+	}else{
+		// CAN account
+		require_recipient( owner );
+	
+		v1_certs _certs(_self, owner.value);
+		auto cert_itr = _certs.find(cert_id);
+		check (cert_itr == _certs.end(), "cert already exist");
+
+		_certs.emplace( ram_payer, [&]( auto& s ) {     
+			s.id = cert_id;
+			s.badge_id = badge_id;
+			s.badge_revision = badge_revision;
+			s.owner = owner;
+			s.state = CertificationState::CERTIFIED;
+			s.expire_at = expire_at;
+		});
+	}
 	
 }
 
@@ -133,7 +151,7 @@ ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 	auto ram_payer = updater;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	ccerts _certs(_self, owner.value);
+	v1_certs _certs(_self, owner.value);
 	auto cert_itr = _certs.find(cert_id);
 
 	check (cert_itr != _certs.end(), "cert does not exist");
@@ -151,12 +169,12 @@ ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, strin
 	require_auth(issuer);
 	require_auth( _self );
 
-	ccerts _certs(_self, owner.value);
+	v1_certs _certs(_self, owner.value);
 	auto cert_itr = _certs.find(cert_id);
 
 	check (cert_itr != _certs.end(), "cert does not exist");
 
-	cbadges _badges( _self, issuer.value );
+	v1_badges _badges( _self, issuer.value );
 	auto itr = _badges.find( cert_itr->badge_id );
 	check (itr != _badges.end(), "certificate's issuer is invalid");
 	check (itr->issuer == issuer, "badge does not belong to issuer");
@@ -176,12 +194,12 @@ ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 	require_auth( _self );
 	require_auth( claimer );
 
- 	ccerts certs_ghost(_self, ghost_account.value);
-	auto itrc = certs_ghost.find( cert_id );
-	check(itrc != certs_ghost.end(), "Cannot find the certs you're attempting to claim.");
+ 	v1_issuing_certs _issuing_certs(_self, issuer.value);
+	auto issuing_cert_itr = _issuing_certs.find( cert_id );
+	check(issuing_cert_itr != _issuing_certs.end(), "Cannot find the certs you're attempting to claim.");
 
-	cbadges _badges( _self, issuer.value );
-	auto badge_itr = _badges.find( itrc->badge_id );
+	v1_badges _badges( _self, issuer.value );
+	auto badge_itr = _badges.find( issuing_cert_itr->badge_id );
 
 	check (badge_itr != _badges.end(), "badge of certification index does not exist");
 
@@ -189,19 +207,19 @@ ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 	if(has_auth(issuer)) ram_payer = issuer;
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
-	ccerts certs_claimer(_self, claimer.value);
+	v1_certs _certs(_self, claimer.value);
 
-	auto itr = certs_claimer.find( cert_id );
-	check(itr == certs_claimer.end(), "the certs you're attempting to claim already exist.");
-	certs_claimer.emplace( ram_payer, [&]( auto& row ) {     
-		row.id = itrc->id;
-		row.badge_id = itrc->badge_id;
-		row.badge_revision = itrc->badge_revision;
-		row.owner = itrc->owner;
-		row.state = itrc->state;
-		row.expire_at = itrc->expire_at;
+	auto itr = _certs.find( cert_id );
+	check(itr == _certs.end(), "the certs you're attempting to claim already exist.");
+	_certs.emplace( ram_payer, [&]( auto& row ) {     
+		row.id = issuing_cert_itr->id;
+		row.badge_id = issuing_cert_itr->badge_id;
+		row.badge_revision = issuing_cert_itr->badge_revision;
+		row.owner = issuing_cert_itr->owner;
+		row.state = issuing_cert_itr->state;
+		row.expire_at = issuing_cert_itr->expire_at;
 	});
-	certs_ghost.erase(itrc);
+	_issuing_certs.erase(issuing_cert_itr);
 }
 
 /*
@@ -209,8 +227,8 @@ ACTION cryptobadge::claimcert( name claimer, name issuer, uint64_t cert_id) {
 */
 uint64_t cryptobadge::getid(uint64_t gindex){
 
-	conf config(_self, _self.value);
-	_cstate = config.exists() ? config.get() : global{};
+	v1_global_table config(_self, _self.value);
+	_cstate = config.exists() ? config.get() : v1_global{};
 
 
 	uint64_t resid;
@@ -229,6 +247,13 @@ uint64_t cryptobadge::getid(uint64_t gindex){
 	return resid;
 }
 
+checksum256 cryptobadge::gettrxid() {
+    size_t size = transaction_size();
+    char buf[size];
+    size_t read = read_transaction( buf, size );
+    check( size == read, "read_transaction failed");
+    return sha256( buf, read );
+}
 
 template<typename... Args>
 void cryptobadge::sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &adata) {

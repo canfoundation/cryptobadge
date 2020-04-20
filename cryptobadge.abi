@@ -4,82 +4,6 @@
     "types": [],
     "structs": [
         {
-            "name": "cbadge",
-            "base": "",
-            "fields": [
-                {
-                    "name": "badge_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "issuer",
-                    "type": "name"
-                },
-                {
-                    "name": "version",
-                    "type": "uint64"
-                }
-            ]
-        },
-        {
-            "name": "ccert",
-            "base": "",
-            "fields": [
-                {
-                    "name": "id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "badge_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "badge_revision",
-                    "type": "uint64"
-                },
-                {
-                    "name": "owner",
-                    "type": "name"
-                },
-                {
-                    "name": "state",
-                    "type": "uint64"
-                },
-                {
-                    "name": "expire_at",
-                    "type": "uint64"
-                }
-            ]
-        },
-        {
-            "name": "ccertinfo",
-            "base": "",
-            "fields": [
-                {
-                    "name": "cert_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "cert_content",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "name": "cissuer",
-            "base": "",
-            "fields": [
-                {
-                    "name": "issuer",
-                    "type": "name"
-                },
-                {
-                    "name": "data",
-                    "type": "checksum256"
-                }
-            ]
-        },
-        {
             "name": "claimcert",
             "base": "",
             "fields": [
@@ -94,28 +18,6 @@
                 {
                     "name": "cert_ids",
                     "type": "uint64"
-                }
-            ]
-        },
-        {
-            "name": "coffer",
-            "base": "",
-            "fields": [
-                {
-                    "name": "cert_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "owner",
-                    "type": "name"
-                },
-                {
-                    "name": "offered_to",
-                    "type": "name"
-                },
-                {
-                    "name": "date",
-                    "type": "time_point"
                 }
             ]
         },
@@ -224,24 +126,6 @@
                 {
                     "name": "owner",
                     "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "global",
-            "base": "",
-            "fields": [
-                {
-                    "name": "defer_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "cert_id",
-                    "type": "uint64"
-                },
-                {
-                    "name": "badge_id",
-                    "type": "uint64"
                 }
             ]
         },
@@ -366,6 +250,134 @@
                     "type": "checksum256"
                 }
             ]
+        },
+        {
+            "name": "v1_badge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "version",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "v1_cert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_revision",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "state",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "v1_certinfo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cert_content",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "v1_global",
+            "base": "",
+            "fields": [
+                {
+                    "name": "defer_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "v1_issuer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "checksum256"
+                }
+            ]
+        },
+        {
+            "name": "v1_issuing_cert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_revision",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "state",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "issued_tx_id",
+                    "type": "checksum256"
+                }
+            ]
         }
     ],
     "actions": [
@@ -424,43 +436,43 @@
             "key_types": []
         },
         {
-            "name": "global",
-            "type": "global",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
             "name": "v1.badges",
-            "type": "cbadge",
+            "type": "v1_badge",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "v1.certinfo",
-            "type": "ccertinfo",
+            "name": "v1.certinfos",
+            "type": "v1_certinfo",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.certs",
+            "type": "v1_cert",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
             "name": "v1.issuers",
-            "type": "cissuer",
+            "type": "v1_issuer",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "v1.offers",
-            "type": "coffer",
+            "name": "v1.issuing",
+            "type": "v1_issuing_cert",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "v2.certs",
-            "type": "ccert",
+            "name": "v1_global",
+            "type": "v1_global",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
