@@ -1,0 +1,35 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "typeRoots": [
+      "node_modules/@types",
+      "*.d.ts"
+    ],
+    "lib": [
+      "dom",
+      "es6",
+      "es2018"
+    ]
+  },
+  "include": [
+    "typings.d.ts",
+    "config/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "shares/**/*.ts",
+    "config/**/*.ts",
+    "real-time/**/*.ts",
+    "functions/**/*.ts"
+  ],
+  "exclude": [
+    "test/node_modules",
+    "**/*.test.ts",
+    "__mocks__"
+  ]
+}

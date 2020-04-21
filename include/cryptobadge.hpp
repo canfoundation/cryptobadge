@@ -102,9 +102,9 @@ public:
 		* Claim the specified certification (assuming it was offered to claimer by the certification owner).
 		*
 		* claimer	- account claiming the badge;
-		* cert_ids	- array of cert_id's to claim;
+		* cert_id	- cert_id to claim;
 		*/
-	ACTION claimbadge(name claimer, name issuer, uint64_t cert_ids);
+	ACTION claimbadge(name claimer, name issuer, uint64_t cert_id);
 
 	/*
 		* Empty action. Used by create action to log cert_id so that third party explorers can
