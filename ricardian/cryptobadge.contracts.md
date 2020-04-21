@@ -1,7 +1,7 @@
 <h1 class="contract">regissuer</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Register Issuer
 summary: 'Register {{nowrap issuer}} as a issuer of cryptobadge'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -12,7 +12,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">updateissuer</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Update Issuer
 summary: 'Update infomation of issuer {{nowrap issuer}}'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -23,7 +23,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">createbadge</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Create Badge
 summary: 'Issuer {{nowrap issuer}} create new badge'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -35,7 +35,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">updatebadge</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Update Badge
 summary: 'Update badge with id {{badge_id}} of issuer {{nowrap issuer}}'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -46,7 +46,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">issuebadge</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Create certification
 summary: 'Create new certification'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -54,10 +54,10 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 
 {{issuer}} agrees to create new certification with badge id {{badge_id}} for owner {{owner}} with the enrypted data {{idata}} and require claim option {{require_claim}}.
 
-<h1 class="contract">claimcert</h1>
+<h1 class="contract">claimbadge</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Claim Certifications
 summary: 'User claim certifications with specified ids'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -68,7 +68,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">canceloffer</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Cancel and remove offer
 summary: 'Cancel and remove offer'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -79,7 +79,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">removecert</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Remove certifications
 summary: 'Remove certifications'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -90,7 +90,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">attach</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Attach Certification Detail
 summary: 'Attach certification detail'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -101,7 +101,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">detach</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Detach Certification Detail
 summary: 'Detach certification detail'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -112,7 +112,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">createlog</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Create log
 summary: 'Create log'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -123,7 +123,7 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">revokecert</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Revoke Certification
 summary: 'Revoke Certification'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
@@ -134,24 +134,32 @@ icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#
 <h1 class="contract">expirecert</h1>
 
 ---
-spec_version: "0.1.0"
+spec_version: "2.0.0"
 title: Update Certification state to expire
 summary: 'Update Certification state to expire'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
 ---
 
-{{updater}} update certification with ID {{cert_id}} of {{owner}} to expired.
+{{contract onwer}} config system envirement.
 
 <h1 class="contract">setconfig</h1>
 
 ---
-spec_version: "0.1.0"
-title: Update Certification state to expire
-summary: 'Update Certification state to expire'
+spec_version: "2.0.0"
+title: Config system envirement
+summary: 'Set/update system envirement'
 icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
 ---
 
-set configuration for badge contract.
+{{issuer}} log event about issued transaction_id to {{owner}}.
 
+<h1 class="contract">issuelog</h1>
+
+---
+spec_version: "2.0.0"
+title: Log event when owner claim the badge
+summary: 'Log event when owner claim the badge'
+icon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f
+---
 
 
