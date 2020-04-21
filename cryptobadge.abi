@@ -1,0 +1,494 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "claimbadge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "claimer",
+                    "type": "name"
+                },
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "createbadge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "image_url",
+                    "type": "string"
+                },
+                {
+                    "name": "path",
+                    "type": "string"
+                },
+                {
+                    "name": "description",
+                    "type": "string"
+                },
+                {
+                    "name": "criteria",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "expirecert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "updater",
+                    "type": "name"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "issuebadge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_revision",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "encrypted_data",
+                    "type": "string"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "require_claim",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "issuelog",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "issued_tx_id",
+                    "type": "checksum256"
+                }
+            ]
+        },
+        {
+            "name": "regissuer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "checksum256"
+                }
+            ]
+        },
+        {
+            "name": "revokecert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "reason",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "setconfig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "ram_payer_account",
+                    "type": "name"
+                },
+                {
+                    "name": "governance_design",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "updatebadge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "image_url",
+                    "type": "string"
+                },
+                {
+                    "name": "path",
+                    "type": "string"
+                },
+                {
+                    "name": "description",
+                    "type": "string"
+                },
+                {
+                    "name": "criteria",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "updateissuer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "checksum256"
+                }
+            ]
+        },
+        {
+            "name": "v1_badge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "version",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "v1_cert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_revision",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "state",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "v1_certinfo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "cert_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cert_content",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "v1_community",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                },
+                {
+                    "name": "community_name",
+                    "type": "string"
+                },
+                {
+                    "name": "member_badge",
+                    "type": "uint64[]"
+                },
+                {
+                    "name": "community_url",
+                    "type": "string"
+                },
+                {
+                    "name": "description",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "v1_global",
+            "base": "",
+            "fields": [
+                {
+                    "name": "ram_payer_account",
+                    "type": "name"
+                },
+                {
+                    "name": "governance_design",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "v1_issuer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "checksum256"
+                }
+            ]
+        },
+        {
+            "name": "v1_issuing_cert",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "badge_revision",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "state",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "issued_tx_id",
+                    "type": "checksum256"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "claimbadge",
+            "type": "claimbadge",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createbadge",
+            "type": "createbadge",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "expirecert",
+            "type": "expirecert",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "issuebadge",
+            "type": "issuebadge",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "issuelog",
+            "type": "issuelog",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "regissuer",
+            "type": "regissuer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "revokecert",
+            "type": "revokecert",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setconfig",
+            "type": "setconfig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updatebadge",
+            "type": "updatebadge",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updateissuer",
+            "type": "updateissuer",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "v1.badges",
+            "type": "v1_badge",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.certinfos",
+            "type": "v1_certinfo",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.certs",
+            "type": "v1_cert",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.community",
+            "type": "v1_community",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.global",
+            "type": "v1_global",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.issuers",
+            "type": "v1_issuer",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.issuing",
+            "type": "v1_issuing_cert",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

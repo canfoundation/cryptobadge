@@ -11,7 +11,7 @@ Example session using cleos with can test net
 * Endpoint network:
 
 Use one of the following:
-http://network-endpoint:8888
+https://history.stagenet.canfoundation.io
 
 * Contract name: cryptobadge2
 
@@ -27,7 +27,13 @@ navigate to contracts/crypto.badge and run those commands to complie and deploy 
 ````bash
 eosio-cpp -abigen -I include -contract cryptobadge -R ricardian -o cryptobadge.wasm src/cryptobadge.cpp
 
-cleos -u http://network-endpoint:8888 set contract cryptobadge5 . cryptobadge.wasm cryptobadge.abi -p cryptobadge5
+cleos -u https://history.stagenet.canfoundation.io set contract cryptobadge5 . cryptobadge.wasm cryptobadge.abi -p cryptobadge5
+
+cleos -u https://history.stagenet.canfoundation.io push action cryptobadge5 setconfig '["ram.can", "governance"]' -p cryptobadge5
+
+# set contract account permission
+cleos -u https://history.stagenet.canfoundation.io set account permission governance23 active '{"threshold": 1,"keys": [{"key": "EOS7syfoU8p7aD4pxjVZ8Y3rtj1sKYp2aaLTDCAJKuk8fYecouJMy","weight": 1}],"accounts": [{"permission":{"actor":"governance23","permission":"eosio.code"},"weight":1}]}' owner -p governance23
+
 ````
 
 ##### pre-process information data
@@ -93,11 +99,11 @@ Json hash256: https://emn178.github.io/online-tools/sha256.html
 
 ````bash
 
-$ cleos -u http://network-endpoint:8888 push action cryptobadge5 regissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
+$ cleos -u https://history.stagenet.canfoundation.io push action cryptobadge5 regissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
 
-$ cleos -u http://network-endpoint:8888 push action cryptobadge5 updateissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
+$ cleos -u https://history.stagenet.canfoundation.io push action cryptobadge5 updateissuer '[badgeissuer1, 74e202709e5e36075b72f23e6b7c253d998685014571ba10e362cc634ffdac18]' -p badgeissuer1
 
-$ cleos -u http://network-endpoint:8888 get table cryptobadge5 cryptobadge5 issuers
+$ cleos -u https://history.stagenet.canfoundation.io get table cryptobadge5 cryptobadge5 v1.issuers
 {
   "rows": [{
       "issuer": "badgeissuer1",
@@ -113,10 +119,10 @@ $ cleos -u http://network-endpoint:8888 get table cryptobadge5 cryptobadge5 issu
 
 ```bash
 // transfer token to create new community account, memo is the name of community account
-cleos -u http://network-endpoint:8888 transfer creator.can governance23 "20.0000 CAT" "community145" -p creator.can
+cleos -u https://history.stagenet.canfoundation.io transfer creator.can governance23 "20.0000 CAT" "community145" -p creator.can
 
 // update community infomation
-cleos -u http://network-endpoint:8888 push action governance23 create '[creator.can, community145, "Test", [], "test-v.com", "Testing vo", 1]' -p creator.can
+cleos -u https://history.stagenet.canfoundation.io push action governance23 create '[creator.can, community145, "Test", [], "test-v.com", "Testing vo", 1]' -p creator.can
 ```
 
 
@@ -163,9 +169,9 @@ cleos -u http://18.182.95.163:8888 get table governance23 community145 codes    
 
 2. create proposal for transaction create badge use eosio.msig contract:
 ```bash
-cleos -u http://network-endpoint:8888 multisig propose newbadge1111  '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' cryptobadge5 createbadge '{"issuer":"community145", "badge_id":1, "version":100, "name":"CryptoBadge", "image_url":"http://cryptobadge.app/image.img", "path":"cryptobadge", "description":"cryptobadge application", "criteria":"cryptobadge criteria"}' cryptobadge5 12
+cleos -u https://history.stagenet.canfoundation.io multisig propose newbadge1111  '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' cryptobadge5 createbadge '{"issuer":"community145", "badge_id":1, "version":100, "name":"CryptoBadge", "image_url":"http://cryptobadge.app/image.img", "path":"cryptobadge", "description":"cryptobadge application", "criteria":"cryptobadge criteria"}' cryptobadge5 12
 
-cleos -u http://network-endpoint:8888 multisig review cryptobadge5 newbadge1111
+cleos -u https://history.stagenet.canfoundation.io multisig review cryptobadge5 newbadge1111
 {
   "proposer": "badge",
   "proposal_name": "newbadge1111",
@@ -211,7 +217,7 @@ cleos -u http://network-endpoint:8888 multisig review cryptobadge5 newbadge1111
 3. use cryptobadge smart contract account to sign this proposal:
 
 ```bash
-cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approvals2 -U newbadge1111 -L newbadge1111
+cleos -u https://history.stagenet.canfoundation.io get table eosio.msig cryptobadge5 approvals2 -U newbadge1111 -L newbadge1111
 {
   "rows": [{
       "version": 1,
@@ -236,9 +242,9 @@ cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approval
   "more": false
 }
 
-cleos -u http://network-endpoint:8888 multisig approve cryptobadge5 newbadge1111 '{"actor": "cryptobadge5", "permission": "active"}' -p cryptobadge5
+cleos -u https://history.stagenet.canfoundation.io multisig approve cryptobadge5 newbadge1111 '{"actor": "cryptobadge5", "permission": "active"}' -p cryptobadge5
 
-cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approvals2 -U newbadge1111 -L newbadge1111
+cleos -u https://history.stagenet.canfoundation.io get table eosio.msig cryptobadge5 approvals2 -U newbadge1111 -L newbadge1111
 {
   "rows": [{
       "version": 1,
@@ -275,7 +281,7 @@ cleos -u http://18.182.95.163:8888 convert pack_action_data governance23 createb
 cleos -u http://18.182.95.163:8888 push action governance23 execcode '[community145, creator.can, badge, createbadge, "5048f0d94d2d25451042088a2573b89a"]' -p creator.can
 
 // verify in state data
-cleos -u http://network-endpoint:8888 get table cryptobadge5 community145 cbadges
+cleos -u https://history.stagenet.canfoundation.io get table cryptobadge5 community145 cbadges
 {
   "rows": [{
       "badge_id": 1,
@@ -293,9 +299,9 @@ Do the same flow with create badge
 
 1. create proposal for transaction create certification (issue badge) use eosio.msig contract:
 ```bash
-cleos -u http://network-endpoint:8888 multisig propose newcert1111  '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' cryptobadge5 issuebadge '{"issuer":"community145", "owner":"community145", "badge_id":1, "badge_revision":100, "cert_id": 1, "encrypted_data":"abc123abcqweqweqr", "require_claim":0}' cryptobadge5 12
+cleos -u https://history.stagenet.canfoundation.io multisig propose newcert1111  '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' '[{"actor": "cryptobadge5", "permission": "active"},{"actor": "community145", "permission": "active"}]' cryptobadge5 issuebadge '{"issuer":"community145", "owner":"community145", "badge_id":1, "badge_revision":100, "cert_id": 1, "encrypted_data":"abc123abcqweqweqr", "require_claim":0}' cryptobadge5 12
 
-cleos -u http://network-endpoint:8888 multisig review cryptobadge5 newcert1111
+cleos -u https://history.stagenet.canfoundation.io multisig review cryptobadge5 newcert1111
 {
   "proposer": "cryptobadge5",
   "proposal_name": "newcert1111",
@@ -340,7 +346,7 @@ cleos -u http://network-endpoint:8888 multisig review cryptobadge5 newcert1111
 3. use cryptobadge smart contract account to sign this proposal:
 
 ```bash
-cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approvals2 -U newcert1111 -L newcert1111
+cleos -u https://history.stagenet.canfoundation.io get table eosio.msig cryptobadge5 approvals2 -U newcert1111 -L newcert1111
 {
   "rows": [{
       "version": 1,
@@ -365,9 +371,9 @@ cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approval
   "more": false
 }
 
-cleos -u http://network-endpoint:8888 multisig approve cryptobadge5 newcert1111 '{"actor": "cryptobadge5", "permission": "active"}' -p cryptobadge5
+cleos -u https://history.stagenet.canfoundation.io multisig approve cryptobadge5 newcert1111 '{"actor": "cryptobadge5", "permission": "active"}' -p cryptobadge5
 
-cleos -u http://network-endpoint:8888 get table eosio.msig cryptobadge5 approvals2 -U newcert1111 -L newcert1111
+cleos -u https://history.stagenet.canfoundation.io get table eosio.msig cryptobadge5 approvals2 -U newcert1111 -L newcert1111
 {
   "rows": [{
       "version": 1,
@@ -404,7 +410,7 @@ cleos -u http://18.182.95.163:8888 convert pack_action_data governance23 issueba
 cleos -u http://18.182.95.163:8888 push action governance23 execcode '[community145, creator.can, badge, issuebadge, "5048f0d94d2d2545004208215f85b89a"]' -p creator.can
 
 // verify in state data
-cleos -u http://network-endpoint:8888 get table cryptobadge5 community145 ccerts
+cleos -u https://history.stagenet.canfoundation.io get table cryptobadge5 community145 ccerts
 {
   "rows": [{
       "badge_id": 1,
@@ -420,7 +426,7 @@ base on `require_claim` parameter use corresponding command to verify certificat
 
 ```bash
 // require_claim is false
-cleos -u http://network-endpoint:8888 get table cryptobadge5 community145 ccerts
+cleos -u https://history.stagenet.canfoundation.io get table cryptobadge5 community145 ccerts
 {
   "rows": [{
       "id": 1,
@@ -434,6 +440,6 @@ cleos -u http://network-endpoint:8888 get table cryptobadge5 community145 ccerts
 }
 
 // require_claim is true
-cleos -u http://network-endpoint:8888 get table cryptobadge5 cryptobadge5 offers
+cleos -u https://history.stagenet.canfoundation.io get table cryptobadge5 cryptobadge5 offers
 ```
 

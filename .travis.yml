@@ -1,0 +1,6 @@
+language: node_js
+node_js:
+- '10'
+before_install:
+  - mkdir ~/.hydra
+  - openssl aes-256-cbc -K $encrypted_2234089e6802_key -iv $encrypted_2234089e6802_iv -in auth.json.enc -out ~/.hydra/auth.json -d

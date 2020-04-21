@@ -1,0 +1,6 @@
+contracts:
+  cryptobadge:
+    abi: cryptobadge.abi
+    name: cryptobadge
+    wasm: cryptobadge.wasm
+options: null

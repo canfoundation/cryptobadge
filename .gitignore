@@ -1,3 +1,4 @@
 .vscode
-*.abi
-*.wasm
+node_modules
+.idea
+auth.json

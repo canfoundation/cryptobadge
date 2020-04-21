@@ -19,7 +19,7 @@ class[[eosio::contract]] cryptobadge : public contract
 
 public:
 	//using contract::contract;
-	cryptobadge(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
+	cryptobadge(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds),_global(_self, _self.value) {}
 
 	/*
 		* New issuer registration. issuer is required to create new badge. Markets *may* choose to use information here
@@ -102,53 +102,39 @@ public:
 		* Claim the specified certification (assuming it was offered to claimer by the certification owner).
 		*
 		* claimer	- account claiming the badge;
-		* cert_ids	- array of cert_id's to claim;
+		* cert_id	- cert_id to claim;
 		*/
-	ACTION claimcert(name claimer, std::vector<uint64_t> & cert_ids);
-
-	/*
-		* Cancel and remove offer. Available for the certification owner.
-		*
-		* issuer	- current certification issuer account;
-		* cert_ids	- array of cert_id's to cancel from offer;
-		*/
-	ACTION canceloffer(name issuer, std::vector<uint64_t> & cert_ids);
-
-	/*
-		* Remove certification {{cert_id}}. This action is only available for the certification owner. After executing, the
-		* certification will disappear forever, and RAM used for certification will be released.
-		*
-		* owner		- current certification owner account;
-		* cert_ids	- array of cert_id's to remove;
-		* memo		- memo for remove action;
-		*/
-	ACTION removecert(name owner, std::vector<uint64_t> & cert_ids, string memo);
+	ACTION claimbadge(name claimer, name issuer, uint64_t cert_id);
 
 	/*
 		* Empty action. Used by create action to log cert_id so that third party explorers can
 		* easily get new certification ids and other information.
 		*/
-	ACTION createlog(name issuer, name owner, checksum256 & idata, uint64_t cert_id, bool require_claim);
+	ACTION issuelog(name issuer, name owner, uint64_t cert_id, const checksum256 & issued_tx_id);
+	
+
+	/*
+		* Set global config for badge contract
+		* 
+		*/
+	ACTION setconfig(name ram_payer_account, name governance_design);
 
 private:
 	enum CertificationState
 	{
 		CERTIFIED = 0,
 		EXPIRED,
-		REVOKED
+		REVOKED	
 	};
 
-	uint64_t getid(uint64_t gindex);
-
-	template <typename... Args>
-	void sendEvent(name issuer, name rampayer, name seaction, const std::tuple<Args...> &tup);
+	checksum256 gettrxid();
 
 	/*
 		* issuers table. Can be used by badge markets, badge explorers, or wallets for correct badge
 		* data presentation.
 		* Scope: self
 		*/
-	TABLE cissuer
+	TABLE v1_issuer
 	{
 		name issuer;
 		checksum256 data;
@@ -158,13 +144,13 @@ private:
 			return issuer.value;
 		}
 	};
-	typedef multi_index<"v1.issuers"_n, cissuer> issuers;
+	typedef multi_index<"v1.issuers"_n, v1_issuer> v1_issuers;
 
 	/*
 	* Badges table which stores information about simple badges.
 	* Scope: badge owner
 	*/
-	TABLE cbadge
+	TABLE v1_badge
 	{
 		uint64_t badge_id;
 		name issuer;
@@ -174,15 +160,15 @@ private:
 		uint64_t by_issuer() const { return issuer.value; }
 	};
 
-	typedef eosio::multi_index<"v1.badges"_n, cbadge,
-							   eosio::indexed_by<"issuer"_n, eosio::const_mem_fun<cbadge, uint64_t, &cbadge::by_issuer>>>
-		cbadges;
+	typedef eosio::multi_index<"v1.badges"_n, v1_badge,
+							   eosio::indexed_by<"issuer"_n, eosio::const_mem_fun<v1_badge, uint64_t, &v1_badge::by_issuer>>>
+		v1_badges;
 
 	/*
 		* Certification table which stores information about  certifications.
 		* Scope: certification owner
 		*/
-	TABLE ccert
+	TABLE v1_cert
 	{
 		uint64_t id;
 		uint64_t badge_id;
@@ -205,16 +191,49 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"v1.certs"_n, ccert,
-							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_badge_id>>,
-							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<ccert, uint64_t, &ccert::by_owner>>>
-		ccerts;
+	typedef eosio::multi_index<"v1.certs"_n, v1_cert,
+							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<v1_cert, uint64_t, &v1_cert::by_badge_id>>,
+							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<v1_cert, uint64_t, &v1_cert::by_owner>>>
+		v1_certs;
 
 	/*
 		* Certification table which stores information about  certifications.
 		* Scope: certification owner
 		*/
-	TABLE ccertinfo
+	TABLE v1_issuing_cert
+	{
+		uint64_t id;
+		uint64_t badge_id;
+		uint64_t badge_revision;
+		name owner;
+		uint64_t state;
+		uint64_t expire_at;
+		checksum256 issued_tx_id;
+
+		auto primary_key() const
+		{
+			return id;
+		}
+		uint64_t by_badge_id() const
+		{
+			return badge_id;
+		}
+		uint64_t by_owner() const
+		{
+			return owner.value;
+		}
+	};
+
+	typedef eosio::multi_index<"v1.issuing"_n, v1_issuing_cert,
+							   eosio::indexed_by<"badgeid"_n, eosio::const_mem_fun<v1_issuing_cert, uint64_t, &v1_issuing_cert::by_badge_id>>,
+							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<v1_issuing_cert, uint64_t, &v1_issuing_cert::by_owner>>>
+		v1_issuing_certs;
+		
+	/*
+		* Certification table which stores information about  certifications.
+		* Scope: certification owner
+		*/
+	TABLE v1_certinfo
 	{
 		uint64_t cert_id;
 		string cert_content;
@@ -225,67 +244,31 @@ private:
 		}
 	};
 
-	typedef eosio::multi_index<"v1.certinfo"_n, ccertinfo> ccertinfos;
-
-	/*
-		* Offers table keeps records of open offers of certifications (ie. certifications waiting to be claimed by their
-		* intendend recipients.
-		*
-		* Scope: self
-		*/
-	TABLE coffer
-	{
-		uint64_t cert_id;
-		name owner;
-		name offered_to;
-		time_point date;
-
-		auto primary_key() const
-		{
-			return cert_id;
-		}
-		uint64_t by_owner() const
-		{
-			return owner.value;
-		}
-		uint64_t by_offered_to() const
-		{
-			return offered_to.value;
-		}
-	};
-
-	typedef eosio::multi_index<"v1.offers"_n, coffer,
-							   eosio::indexed_by<"owner"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_owner>>,
-							   eosio::indexed_by<"offeredto"_n, eosio::const_mem_fun<coffer, uint64_t, &coffer::by_offered_to>>>
-		offers;
+	typedef eosio::multi_index<"v1.certinfos"_n, v1_certinfo> v1_certinfos;
 
 	/*
 		* global singelton table, used for cert_id building
 		* Scope: self
 		*/
-	TABLE global
+	TABLE v1_global
 	{
 
-		global() {}
-		uint64_t defer_id = 100000000000000;
-		uint64_t cert_id = 1000000;
-		uint64_t badge_id = 0000000;
+		v1_global() {}
+		name ram_payer_account = "ram.can"_n;
+		name governance_design = "governance"_n;
 
-		EOSLIB_SERIALIZE(global, (defer_id)(cert_id)(badge_id))
+		EOSLIB_SERIALIZE(v1_global, (ram_payer_account)(governance_design))
 	};
 
-	typedef eosio::singleton<"v1.global"_n, global> conf;
-	global _cstate;
+	typedef eosio::singleton<"v1.global"_n, v1_global> v1_global_table;
+	typedef eosio::multi_index<"v1.global"_n, v1_global> fv1_global_table;
+	// v1_global _cstate;
 
-	enum gindex : uint8_t
-	{
-		DEFER = 0,
-		CERT = 1,
-		BADGE = 2,
-	};
+	v1_global_table _global;
+	
 
 	//refer govenance design
-	TABLE communityf
+	TABLE v1_community
 	{
 		name community_account;
 		name creator;
@@ -297,5 +280,5 @@ private:
 		uint64_t primary_key() const { return community_account.value; }
 	};
 
-	typedef eosio::multi_index<"community"_n, communityf> community_table;
+	typedef eosio::multi_index<"v1.community"_n, v1_community> v1_community_table;
 };
