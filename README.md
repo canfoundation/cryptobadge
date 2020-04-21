@@ -1,15 +1,15 @@
 Crypto-Badge
 ----------
 
-Version 1.0.0
+Version 2.0.0
 
 This contract provides multiple functionalities:
 - Users can register to become a badge issuer,
 - Issuer can create/update badge and assign to badge owner
 - Badge owner can create new certification based on the created badge
-- Badge owner can create new certification and issue to users (issuer pay for RAM) directly or offer it to users (Users must pay RAM if they accept the offer)
-- Badge owner can cancel the offered certification.
-- User can accept the offer to receive certification from Badge owner
+- Badge owner can create new certification and issue to users 
+- Badge owner can create new certification and reserved it for non CAN account
+- Users who just have CAN account can claim badge which belong to them under verification from crypto-badge
 - User can choose to public certification detail
 
 Dependencies:
@@ -56,6 +56,9 @@ yarn test cryptobadge.test.ts
 
 ***WARING*** Because test need to send many request to hydra server, test timeout error may sometime happend. Make sure your network connection is stable to run this test.
 
+## Example to run contract with cleos:
+
+* [Example](https://github.com/canfoundation/cryptobadge/tree/master/example)
 
 ## Actions:
 
