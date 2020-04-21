@@ -22,36 +22,6 @@
             ]
         },
         {
-            "name": "communityf",
-            "base": "",
-            "fields": [
-                {
-                    "name": "community_account",
-                    "type": "name"
-                },
-                {
-                    "name": "creator",
-                    "type": "name"
-                },
-                {
-                    "name": "community_name",
-                    "type": "string"
-                },
-                {
-                    "name": "member_badge",
-                    "type": "uint64[]"
-                },
-                {
-                    "name": "community_url",
-                    "type": "string"
-                },
-                {
-                    "name": "description",
-                    "type": "string"
-                }
-            ]
-        },
-        {
             "name": "createbadge",
             "base": "",
             "fields": [
@@ -324,6 +294,36 @@
             ]
         },
         {
+            "name": "v1_community",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                },
+                {
+                    "name": "community_name",
+                    "type": "string"
+                },
+                {
+                    "name": "member_badge",
+                    "type": "uint64[]"
+                },
+                {
+                    "name": "community_url",
+                    "type": "string"
+                },
+                {
+                    "name": "description",
+                    "type": "string"
+                }
+            ]
+        },
+        {
             "name": "v1_global",
             "base": "",
             "fields": [
@@ -440,13 +440,6 @@
     ],
     "tables": [
         {
-            "name": "community",
-            "type": "communityf",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
             "name": "v1.badges",
             "type": "v1_badge",
             "index_type": "i64",
@@ -463,6 +456,13 @@
         {
             "name": "v1.certs",
             "type": "v1_cert",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.community",
+            "type": "v1_community",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
