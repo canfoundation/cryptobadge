@@ -268,7 +268,7 @@ private:
 	
 
 	//refer govenance design
-	TABLE communityf
+	TABLE v1_community
 	{
 		name community_account;
 		name creator;
@@ -280,5 +280,5 @@ private:
 		uint64_t primary_key() const { return community_account.value; }
 	};
 
-	typedef eosio::multi_index<"community"_n, communityf> community_table;
+	typedef eosio::multi_index<"v1.community"_n, v1_community> v1_community_table;
 };

@@ -56,7 +56,7 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
 	v1_issuers _issuer(_self, _self.value);
-	community_table _community(g_state.governance_design, g_state.governance_design.value);
+	v1_community_table _community(g_state.governance_design, g_state.governance_design.value);
 	
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()){
@@ -110,7 +110,7 @@ ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint
 	if(has_auth(ram_payer_system)) ram_payer = ram_payer_system;
 
 	v1_issuers _issuer(_self, _self.value);
-	community_table _community(g_state.governance_design, g_state.governance_design.value);
+	v1_community_table _community(g_state.governance_design, g_state.governance_design.value);
 
 	auto issuer_itr = _issuer.find( issuer.value );
 	if(issuer_itr == _issuer.end()) {
