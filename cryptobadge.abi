@@ -4,6 +4,38 @@
     "types": [],
     "structs": [
         {
+            "name": "approvepropo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "approver",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "cancelpropos",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "claimbadge",
             "base": "",
             "fields": [
@@ -52,6 +84,42 @@
                 {
                     "name": "criteria",
                     "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createpropos",
+            "base": "",
+            "fields": [
+                {
+                    "name": "action",
+                    "type": "name"
+                },
+                {
+                    "name": "packed_params",
+                    "type": "bytes"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "time_point"
+                }
+            ]
+        },
+        {
+            "name": "executepropo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_name",
+                    "type": "name"
                 }
             ]
         },
@@ -384,58 +452,104 @@
                     "type": "checksum256"
                 }
             ]
+        },
+        {
+            "name": "v1_proposal",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposal_name",
+                    "type": "name"
+                },
+                {
+                    "name": "action",
+                    "type": "name"
+                },
+                {
+                    "name": "packed_params",
+                    "type": "bytes"
+                },
+                {
+                    "name": "approvers",
+                    "type": "name[]"
+                },
+                {
+                    "name": "expire_at",
+                    "type": "time_point"
+                }
+            ]
         }
     ],
     "actions": [
         {
+            "name": "approvepropo",
+            "type": "approvepropo",
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Approve proposal\nsummary: 'Approver approve create/update/issue proposal'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{approver}} approve the proposal of {{issuer}} with name {{proposal_name}}"
+        },
+        {
+            "name": "cancelpropos",
+            "type": "cancelpropos",
+            "ricardian_contract": ""
+        },
+        {
             "name": "claimbadge",
             "type": "claimbadge",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Claim Certifications\nsummary: 'User claim certifications with specified ids'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{claimer}} agrees to claim certifications with id {{cert_ids}}."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Claim Certifications\nsummary: 'User claim certifications with specified ids'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{claimer}} agrees to claim certifications with id {{cert_ids}}."
         },
         {
             "name": "createbadge",
             "type": "createbadge",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Create Badge\nsummary: 'Issuer {{nowrap issuer}} create new badge'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to create new badge with the following data: 1. badge name: {{name}}, 2. badge version {{version}}, 3. image_url {{image_url}}, 4. path {{path}}, 5. description {{description}}, 6. criteria {{criteria}}"
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Create Badge\nsummary: 'Issuer {{nowrap issuer}} create new badge'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to create new badge with the following data: 1. badge name: {{name}}, 2. badge version {{version}}, 3. image_url {{image_url}}, 4. path {{path}}, 5. description {{description}}, 6. criteria {{criteria}}"
+        },
+        {
+            "name": "createpropos",
+            "type": "createpropos",
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Create proposal\nsummary: 'Crypto badge aggree to create new create/update/issue proposal'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\nCrypto badge agrees to create proposal to execute action {{action}} with packed parameters {{packed_params}} and name {{proposal_name}}"
+        },
+        {
+            "name": "executepropo",
+            "type": "executepropo",
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Execute proposal\nsummary: 'Issuer execute proposal'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} approve to execute proposal with name {{proposal_name}}"
         },
         {
             "name": "expirecert",
             "type": "expirecert",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Certification state to expire\nsummary: 'Update Certification state to expire'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{contract onwer}} config system envirement."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Certification state to expire\nsummary: 'Update Certification state to expire'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{contract onwer}} config system envirement."
         },
         {
             "name": "issuebadge",
             "type": "issuebadge",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Create certification\nsummary: 'Create new certification'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to create new certification with badge id {{badge_id}} for owner {{owner}} with the enrypted data {{idata}} and require claim option {{require_claim}}."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Create certification\nsummary: 'Create new certification'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to create new certification with badge id {{badge_id}} for owner {{owner}} with the enrypted data {{idata}} and require claim option {{require_claim}}."
         },
         {
             "name": "issuelog",
             "type": "issuelog",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Log event when owner claim the badge\nsummary: 'Log event when owner claim the badge'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---"
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Log event when owner claim the badge\nsummary: 'Log event when owner claim the badge'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---"
         },
         {
             "name": "regissuer",
             "type": "regissuer",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Register Issuer\nsummary: 'Register {{nowrap issuer}} as a issuer of cryptobadge'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to be the issuer of crypto badge and save the hash data {{data}} to the blockchain."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Register Issuer\nsummary: 'Register {{nowrap issuer}} as a issuer of cryptobadge'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to be the issuer of crypto badge and save the hash data {{data}} to the blockchain."
         },
         {
             "name": "revokecert",
             "type": "revokecert",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Revoke Certification\nsummary: 'Revoke Certification'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to revoke certification with ID {{cert_id}} of {{owner}}."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Revoke Certification\nsummary: 'Revoke Certification'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to revoke certification with ID {{cert_id}} of {{owner}}."
         },
         {
             "name": "setconfig",
             "type": "setconfig",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Config system envirement\nsummary: 'Set/update system envirement'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} log event about issued transaction_id to {{owner}}."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Config system envirement\nsummary: 'Set/update system envirement'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} log event about issued transaction_id to {{owner}}."
         },
         {
             "name": "updatebadge",
             "type": "updatebadge",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Badge\nsummary: 'Update badge with id {{badge_id}} of issuer {{nowrap issuer}}'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to update badge with id {{badge_id}} with the following data: 1. version {{version}}, 2. name {{name}}, 3. image_url {{image_url}}, 4. path {{path}}, 5. description {{description}}, 6. criteria {{criteria}}"
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Badge\nsummary: 'Update badge with id {{badge_id}} of issuer {{nowrap issuer}}'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to update badge with id {{badge_id}} with the following data: 1. version {{version}}, 2. name {{name}}, 3. image_url {{image_url}}, 4. path {{path}}, 5. description {{description}}, 6. criteria {{criteria}}"
         },
         {
             "name": "updateissuer",
             "type": "updateissuer",
-            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Issuer\nsummary: 'Update infomation of issuer {{nowrap issuer}}'\nicon: https://ddnb1wizcm1i5.cloudfront.net/fd91d4bdbcfbb8fc528b0cc8d7b11fa5.svg#a4148806780c5b0a2ed0e1e44a36b1947dd932f653184964d9e44e5dae084a9f\n---\n\n{{issuer}} agrees to update their data with new hash {{data}} to the blockchain."
+            "ricardian_contract": "---\nspec_version: \"2.0.0\"\ntitle: Update Issuer\nsummary: 'Update infomation of issuer {{nowrap issuer}}'\nicon: https://d1i5zj4k49u5j1.cloudfront.net/ed8c2744ba1d0c21c8b3f3542229fbb6.svg\n---\n\n{{issuer}} agrees to update their data with new hash {{data}} to the blockchain."
         }
     ],
     "tables": [
@@ -484,6 +598,13 @@
         {
             "name": "v1.issuing",
             "type": "v1_issuing_cert",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.proposal",
+            "type": "v1_proposal",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

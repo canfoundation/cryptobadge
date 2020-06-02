@@ -39,6 +39,42 @@ public:
 	ACTION updateissuer(name issuer, checksum256 & data);
 
 	/*
+		* propose create/update/issue badge action
+		*
+		* issuer	      - issuer account who create proposal;
+		* action		- createbadge/updatebadge/issuebadge
+		* packed_params - packed parameters to execute action
+		* proposal_name - name of proposal
+		* expire_duration - the duration of proposal to be expired
+		*/
+	ACTION createpropos(name action, vector<char> packed_params, name proposal_name, time_point expire_at);
+
+	/*
+		* approve create/update/issue badge proposal
+		*
+		* issuer	      - issuer account who create proposal;
+		* approver		  - createbadge/updatebadge/issuebadge
+		* proposal_name - name of proposal
+		*/
+	ACTION approvepropo(name issuer, name approver, name proposal_name);
+
+	/*
+		* execute create/update/issue badge proposal
+		*
+		* issuer	      - issuer account who create proposal;
+		* proposal_name - name of proposal
+		*/
+	ACTION executepropo(name issuer, name proposal_name);
+
+	/*
+		* cancel create/update/issue badge proposal
+		*
+		* issuer	      - issuer account who create proposal;
+		* proposal_name - name of proposal to be canceled
+		*/
+	ACTION cancelpropos(name issuer, name proposal_name);
+
+	/*
 		* Create a new badge.
 		*
 		* issuer		- badge's issuer, who will able to updated badge's mdata;
@@ -79,7 +115,7 @@ public:
 		*		  issuer will remain the owner, but an offer will be created for the account specified in
 		*		  the owner field to claim the certification using the account's RAM.
 		*/
-	ACTION issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim);
+	ACTION issuebadge(name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim);
 
 	/*
 		* Update certification state to expired.
@@ -128,6 +164,25 @@ private:
 	};
 
 	checksum256 gettrxid();
+
+	/*
+		* proposal table, to save create/update/issue badge proposal
+		* Scope: issuer
+		*/
+	TABLE v1_proposal
+	{
+		name proposal_name;
+		name action;
+		vector<char> packed_params;
+		vector<name> approvers;
+		time_point expire_at;
+
+		auto primary_key() const
+		{
+			return proposal_name.value;
+		}
+	};
+	typedef multi_index<"v1.proposal"_n, v1_proposal> v1_proposals;
 
 	/*
 		* issuers table. Can be used by badge markets, badge explorers, or wallets for correct badge
