@@ -45,8 +45,93 @@ ACTION cryptobadge::updateissuer( name issuer, checksum256& data) {
 	});
 }
 
+ACTION cryptobadge::createpropos(name action, vector<char> packed_params, name proposal_name, time_point expire_at) {
+	require_auth(_self);
+
+	check(action == "createbadge"_n || action == "updatebadge"_n || action == "issuebadge"_n, "action is invalid");
+	check(expire_at.sec_since_epoch() > current_time_point().sec_since_epoch(), "expire at must be greater than current time point");
+	
+	datastream packed_params_datastream(&packed_params[0], packed_params.size());
+	name issuer;
+	packed_params_datastream >> issuer;
+
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+	v1_issuers _issuer(_self, _self.value);
+	v1_community_table _community(g_state.governance_design, g_state.governance_design.value);
+	
+	auto issuer_itr = _issuer.find( issuer.value );
+	if(issuer_itr == _issuer.end()) {
+		auto community_itr = _community.find( issuer.value );
+		check ( community_itr != _community.end(), "issuer does not exist" );
+	}
+
+	v1_proposals _proposal( _self, issuer.value );
+	auto proposal_itr = _proposal.find(proposal_name.value);
+	check ( proposal_itr == _proposal.end(), "proposal name already existed");
+
+	_proposal.emplace( _self, [&]( auto& p ) {
+		p.proposal_name = proposal_name;
+		p.action = action;
+		p.packed_params = packed_params;
+		p.expire_at = expire_at;
+	});
+}
+
+ACTION cryptobadge::approvepropo(name issuer, name approver, name proposal_name) {
+	require_auth(approver);
+
+	v1_proposals _proposal( _self, issuer.value );
+	auto proposal_itr = _proposal.find(proposal_name.value);
+	check ( proposal_itr != _proposal.end(), "proposal is not exist");
+
+	check(proposal_itr->expire_at.sec_since_epoch() > current_time_point().sec_since_epoch(), "proposal has been expired");
+
+	vector<name> new_approvers = proposal_itr->approvers;
+	new_approvers.push_back(approver);
+
+	_proposal.modify( proposal_itr, approver, [&]( auto& s ) {
+		s.approvers = new_approvers;
+	});
+}
+
+ACTION cryptobadge::executepropo(name issuer, name proposal_name) {
+	require_auth(issuer);
+
+	auto g_state = _global.exists() ? _global.get() : v1_global{};
+
+	v1_proposals _proposal( _self, issuer.value );
+	auto proposal_itr = _proposal.find(proposal_name.value);
+	check ( proposal_itr != _proposal.end(), "proposal is not exist");
+
+	check(proposal_itr->expire_at.sec_since_epoch() > current_time_point().sec_since_epoch(), "proposal has been expired");
+
+	action sending_action;
+  sending_action.authorization.push_back(permission_level{_self, "active"_n});
+	if (find(proposal_itr->approvers.begin(), proposal_itr->approvers.end(), g_state.ram_payer_account) != proposal_itr->approvers.end()) {
+		sending_action.authorization.push_back(permission_level{g_state.ram_payer_account, "active"_n});
+	}
+	sending_action.account = _self;
+	sending_action.name = proposal_itr->action;
+	sending_action.data = proposal_itr->packed_params;
+	sending_action.send();
+
+	_proposal.erase(proposal_itr);
+}
+
+ACTION cryptobadge::cancelpropos(name issuer, name proposal_name) {
+	require_auth(_self);
+
+	v1_proposals _proposal( _self, issuer.value );
+	auto proposal_itr = _proposal.find(proposal_name.value);
+	check ( proposal_itr != _proposal.end(), "proposal is not exist");
+
+	check(proposal_itr->expire_at.sec_since_epoch() < current_time_point().sec_since_epoch(), "cannot cancel until expiration");
+
+	_proposal.erase(proposal_itr);
+};
+
 ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria) {
-	require_auth( issuer );
+	// require_auth( issuer );
 	require_auth( _self );
 
 	auto g_state = _global.exists() ? _global.get() : v1_global{};
@@ -77,8 +162,7 @@ ACTION cryptobadge::createbadge(name issuer, uint64_t badge_id, string name, str
 }
 
 ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, string image_url, string path, string description, string criteria ) {
-
-	require_auth( issuer );
+	// require_auth( issuer );
 	require_auth( _self );
 
 	auto g_state = _global.exists() ? _global.get() : v1_global{};
@@ -99,8 +183,7 @@ ACTION cryptobadge::updatebadge( name issuer, uint64_t badge_id, string name, st
 }
 
 ACTION cryptobadge::issuebadge( name issuer, name owner, uint64_t badge_id, uint64_t badge_revision, uint64_t cert_id, string& encrypted_data, uint64_t expire_at, bool require_claim) {
-
-	require_auth( issuer );
+	// require_auth( issuer );
 	require_auth( _self );
 
 	auto g_state = _global.exists() ? _global.get() : v1_global{};
@@ -298,4 +381,20 @@ checksum256 cryptobadge::gettrxid() {
         }                                                                                     \
     }
 
-EOSIO_ABI_CUSTOM( cryptobadge, (setconfig)(regissuer)(updateissuer)(createbadge)(updatebadge)(issuebadge)(issuelog)(claimbadge)(revokecert)(expirecert))
+EOSIO_ABI_CUSTOM(
+	cryptobadge, 
+	(setconfig)
+	(regissuer)
+	(updateissuer)
+	(createpropos)
+	(approvepropo)
+	(executepropo)
+	(cancelpropos)
+	(createbadge)
+	(updatebadge)
+	(issuebadge)
+	(issuelog)
+	(claimbadge)
+	(revokecert)
+	(expirecert)
+)
