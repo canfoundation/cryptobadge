@@ -184,7 +184,7 @@ ACTION cryptobadge::expirecert( name updater, uint64_t cert_id, name owner ) {
 	});
 }
 
-ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, string reason ) {
+ACTION cryptobadge::revokecert( name issuer, uint64_t cert_id, name owner, string& encrypted_data) {
 	require_auth(issuer);
 	require_auth( _self );
 
