@@ -96,7 +96,7 @@ public:
 		* cert_id	- certification id;
 		* owner		- the owner of certification;
 		*/
-	ACTION revokecert(name issuer, uint64_t cert_id, name owner, string reason);
+	ACTION revokecert(name issuer, uint64_t cert_id, name owner, string& encrypted_data);
 
 	/*
 		* Claim the specified certification (assuming it was offered to claimer by the certification owner).

@@ -835,7 +835,7 @@ describe("test cryptobadge contract", () => {
           issuer: badgeIssuer1.accountName,
           cert_id: issueBadgeData.cert_id,
           owner: certificateReceiver.accountName,
-          reason: 'I like it',
+          encrypted_data: issueBadgeData.encrypted_data,
         },[
           {
             actor: badgeIssuer1.accountName,
@@ -921,7 +921,7 @@ describe("test cryptobadge contract", () => {
           issuer: badgeIssuer2.accountName,
           cert_id: issueBadgeData.cert_id,
           owner: certificateReceiver.accountName,
-          reason: 'I like it',
+          encrypted_data: issueBadgeData.encrypted_data,
         },[
           {
             actor: badgeIssuer2.accountName,
