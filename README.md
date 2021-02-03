@@ -62,16 +62,16 @@ yarn test cryptobadge.test.ts
 
 ## Actions:
 
-#### badge::regissuer
+#### badge::regissuer issuer data
    - Indicates that a particular account wishes to become a issuer
    - **issuer** account registering to be a badge issuer who has permission to create badge
    - **data** sha256 of issuer info
 
-#### badge::updateissuer
+#### badge::updateissuer issuer data
    - **issuer** account owner of issuer
    - **data** sha256 updated issuer info
 
-#### badge::createbadge
+#### badge::createbadge issuer version name image_url path description criteria
    - Create a new badge
    - **issuer** the account registering as a issuer
    - **badge_id** the id of badge, should be unique in scope of issuer
@@ -81,8 +81,7 @@ yarn test cryptobadge.test.ts
    - **description** the description of badge
    - **criteria** the criteria of badge
 
-#### badge::updatebadge
-   - Update badge
+#### badge::updatebadge issuer badge_id version name image_url path description criteria
    - **issuer** account has created badge
    - **badge_id** id of badge
    - **name** the name of badge
@@ -91,7 +90,7 @@ yarn test cryptobadge.test.ts
    - **description** the description of badge
    - **criteria** the criteria of badge
 
-#### badge::issuebadge
+#### badge::issuebadge issuer owner idata require_claim
    - Create a new certification
    - **issuer** account whose onwer of badge_id
    - **owner** account whose certification owner
@@ -99,27 +98,40 @@ yarn test cryptobadge.test.ts
    - **badge_revision** the version of badge use for create certificate
    - **cert_id** certification id for certification, should be unique in scope of owner
    - **encrypted_data** ceritification encrypted data
-   - **expire_at** expire time of certification as epoch second
    - **require_claim** true or false. If disabled, upon creation, the certification will be transfered to owner but issuer'S memory will be used until the certification is transferred again).  If enabled issuer will remain the owner, but an offer will be created for the account specified in the owner field to claim the certification using the account's RAM.
 
-#### badge::claimbadge
+#### badge::claimcert claimer cert_ids
    - **claimer** account whose onwer of certification
-   - **issuer** issuer of certification
-   - **cert_id** certification to claim. The action will be failed if cert_id does not exist
+   - **cert_ids** list certifications to claim. The action will be failed if one cert_ids does not work
    - Note : claimer must pay RAM for certification if they do this action
 
-#### badge::expirecert
-   - update certification state to EXPIRED
-   - **updater** current certification issuer account
-   - **cert_id** certification to expire
-   - Note: Can not update if certification's expire_at > now
+#### badge::canceloffer issuer cert_ids
+   - **issuer** current certification issuer account
+   - **cert_ids** list certifications to cancel offer
+   - Issuer only cancel offer when the certification still not issue it to owner
+   
+#### badge::removecert owner cert_ids memo
+   - Deposits tokens to user REX fund
+   - **owner** current certification owner account
+   - **cert_ids** array of cert_id's to revoke
+   - **memo** memo for revoke action
+   - This action is only available for the certification owner. After executing, the certification will disappear forever, and RAM used for certification will be released.
 
-#### badge::revokecert
-   - update certification state to REVOKE
-   - **issuer** issuer of certification
-   - **cert_id** certification to expire
-   - **encrypted_data** updated encrypted data of certification with revocation reason
-   - Note: Can not update if certification's expire_at > now
+#### badge::attach owner cert_id  data
+   - public certification detail. Action is not mandatory
+   - **owner** certification owner account
+   - **cert_id** id of certificastion when to public on blockchain
+   - **data** json stringify data of certification
+   - Note: once the certification is public, there are no way to remove data on blockchain
+
+#### badge::detach owner cert_ids
+   - Detach certification detail. Action is not mandatory.
+   - **owner** certification owner account
+   - **cert_ids** list of id certification
+   - The Ram will be release 
+
+#### badge::createlog issuer owner idata cert_id require_claim
+   - Empty action. Used by create action to log cert_id so that third party explorers can easily get new certification ids and other information.
 
 
 
