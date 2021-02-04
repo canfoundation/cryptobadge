@@ -164,7 +164,7 @@
                     "type": "name"
                 },
                 {
-                    "name": "reason",
+                    "name": "encrypted_data",
                     "type": "string"
                 }
             ]
